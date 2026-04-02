@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>概要 - Kashiwazaki SEO Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニュー">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li class="active"><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="panel-management.html">エンティティ管理・パネル表示</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>Kashiwazaki SEO Author Panel Manager マニュアル</h1>
+    <img src="images/main-visual.png" alt="Kashiwazaki SEO Author Panel Manager メインビジュアル" style="width:100%;border-radius:6px;margin-bottom:16px;">
+    <p class="lead">Kashiwazaki SEO Author Panel Manager は、WordPressサイトで著者・企業・組織のエンティティ情報を一元管理し、Schema.org準拠のJSON-LDとともにフロントエンドに著者パネルを表示するSEOプラグインです。ショートコード・Gutenbergブロック・5種類のパネルスタイルを備え、柔軟な著者情報の表示を実現します。</p>
+
+    <p>検索エンジンやAIシステムがコンテンツの信頼性を評価する上で、著者・組織のエンティティ情報は重要なシグナルとなります。本プラグインはPerson・Corporation・Organizationの3種類のエンティティを専用テーブルで管理し、構造化データとビジュアルパネルの両面からE-E-A-T（経験・専門性・権威性・信頼性）の向上を支援します。</p>
+
+    <h2>主な機能</h2>
+
+    <div class="feature-cards">
+        <div class="feature-card">
+            <span class="icon">&#128100;</span>
+            <h4>エンティティ管理</h4>
+            <p>Person・Corporation・Organizationの3タブで著者・企業・組織情報を一元管理</p>
+        </div>
+        <div class="feature-card">
+            <span class="icon">&#128202;</span>
+            <h4>Schema.org JSON-LD</h4>
+            <p>エンティティ情報からPerson/Organization構造化データを自動生成・出力</p>
+        </div>
+        <div class="feature-card">
+            <span class="icon">&#127912;</span>
+            <h4>パネル表示</h4>
+            <p>5スタイル（default, dark, accent, minimal, card）+ショートコード+Gutenbergブロック対応</p>
+        </div>
+    </div>
+
+    <h2>プラグインの特長</h2>
+
+    <ul>
+        <li>3種類のエンティティタイプ（Person / Corporation / Organization）を専用DBテーブルで管理</li>
+        <li>Schema.org準拠のJSON-LDを自動出力（standardモード：自己完結型 / customモード：既存スキーマ連携）</li>
+        <li>5種類のパネルスタイル（default, dark, accent, minimal, card）から選択可能</li>
+        <li>ショートコード <code>[author_panel]</code> で任意の場所にパネルを挿入</li>
+        <li>Gutenbergブロック <code>kapm/author-panel</code> でビジュアルエディターから直接配置</li>
+        <li>REST API（kapm/v1）によるエンティティデータの外部連携</li>
+        <li>wp_optionsを使用せず、専用テーブル（apm_persons, apm_corporations, apm_organizations）でデータ管理</li>
+        <li>AJAX・Cron・外部APIへの依存なし。軽量で安全な設計</li>
+    </ul>
+
+    <figure class="infographic">
+        <img src="images/infographics/overview-flow.png" alt="プラグイン概要フロー図">
+        <figcaption>Kashiwazaki SEO Author Panel Manager の全体フロー</figcaption>
+    </figure>
+
+    <h2>SEO・GEO（生成AI最適化）への効果</h2>
+
+    <h3>E-E-A-Tシグナルの強化</h3>
+    <p>本プラグインは著者・組織のエンティティ情報をSchema.org準拠のJSON-LDで構造化出力します。Person/Organizationスキーマにより、検索エンジンがコンテンツの著者や発信元の専門性・権威性・信頼性を正確に評価できるようになります。</p>
+
+    <h3>ナレッジグラフへの貢献</h3>
+    <p>sameAsプロパティにより、著者や組織のSNSアカウント・公式サイト・Wikipediaページなどの外部プロフィールと連携できます。これにより、Googleのナレッジグラフにエンティティが認識される可能性が高まります。</p>
+
+    <h3>Core Web Vitals への影響ゼロ</h3>
+    <p>フロントエンドはCSS（public/css/panel-style.css）のみで動作します。JavaScriptを使用しないため、Largest Contentful Paint（LCP）やInteraction to Next Paint（INP）などのCore Web Vitals指標に悪影響を与えません。</p>
+
+    <h3>生成AI（GEO）への対応</h3>
+    <p>構造化されたエンティティデータは、AIがコンテンツの著者情報や組織の信頼性を正確に理解するのに役立ちます。Person/Organizationスキーマにより、著者の経歴・役職・関連URLなどが機械可読な形式で提供されるため、AI検索エンジンやLLMベースのシステムがコンテンツの信頼性をより正確に評価できるようになります。</p>
+
+    <h2>目次（マニュアル構成）</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">ページ</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><a href="index.html">概要</a></td>
+                <td>プラグインの機能概要、SEO/GEO効果、動作要件</td>
+            </tr>
+            <tr>
+                <td><a href="setup.html">インストール・初期設定</a></td>
+                <td>インストール手順、初期設定、ショートコード・ブロックの使い方</td>
+            </tr>
+            <tr>
+                <td><a href="panel-management.html">エンティティ管理・パネル表示</a></td>
+                <td>Person/Corporation/Organizationの管理、パネルスタイル、Customモード</td>
+            </tr>
+            <tr>
+                <td><a href="troubleshooting.html">トラブルシューティング</a></td>
+                <td>よくある問題と対処法、技術仕様、アーキテクチャ</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>動作要件</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">項目</th>
+                <th>要件</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>WordPress</td>
+                <td>6.0 以上</td>
+            </tr>
+            <tr>
+                <td>PHP</td>
+                <td>8.0 以上</td>
+            </tr>
+            <tr>
+                <td>ライセンス</td>
+                <td>GPL-2.0+</td>
+            </tr>
+            <tr>
+                <td>対応ブラウザ</td>
+                <td>Chrome、Firefox、Safari、Edge（最新版）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>インストール後すぐに使い始めたい場合は、<a href="setup.html">インストール・初期設定</a>ページに進んでください。</p>
+    </div>
+
+    <nav class="page-nav">
+        <span></span>
+        <a href="setup.html" class="next">インストール・初期設定 &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

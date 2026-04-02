@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インストール・初期設定 - Kashiwazaki SEO Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニュー">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li class="active"><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="panel-management.html">エンティティ管理・パネル表示</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>インストール・初期設定</h1>
+    <p class="lead">Kashiwazaki SEO Author Panel Manager のインストール方法と、著者パネル表示に必要な初期設定を説明します。</p>
+
+    <h2>インストール手順</h2>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>WordPress管理画面から <strong>プラグイン &gt; 新規追加</strong> に移動し、「Kashiwazaki SEO Author Panel Manager」を検索します。または、プラグインのZIPファイルを <strong>プラグイン &gt; 新規追加 &gt; プラグインのアップロード</strong> からアップロードします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>「今すぐインストール」をクリックし、インストール完了後「有効化」をクリックします。有効化時に専用データベーステーブル（apm_persons, apm_corporations, apm_organizations）が自動作成されます。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>管理画面の左メニューに「Kashiwazaki SEO Author Panel Manager」が追加されます。クリックして設定画面を開きます。</p>
+        </div>
+    </div>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/00-menu-location.png" alt="管理画面メニューの位置" class="lightbox-trigger">
+        <figcaption>管理画面の左メニューにプラグインが追加されます</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>有効化後、管理画面メニューの「Kashiwazaki SEO Author Panel Manager」をクリックすると、設定画面（admin.php?page=kapm）が開きます。Person / Corporation / Organization の3つのタブが表示されます。</p>
+    </div>
+
+    <h2>初期設定：最初のエンティティを登録する</h2>
+
+    <h3>Personエンティティの作成</h3>
+    <p>まず、サイトの主要な著者情報をPersonエンティティとして登録しましょう。</p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>設定画面の「Person」タブを選択し、「新規追加」をクリックします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>著者の名前、英語名、役割、肩書き、略歴、画像URL、WebサイトURL、sameAs（SNSなどの外部プロフィールURL）を入力します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>パネルスタイルを5種類（default, dark, accent, minimal, card）から選択し、保存します。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-note">
+        <div class="callout-title">補足</div>
+        <p>エンティティは専用テーブルに保存されます。wp_optionsは使用しません。</p>
+    </div>
+
+    <h2>ショートコードの使い方</h2>
+
+    <p>登録したエンティティのパネルを投稿・固定ページに表示するには、ショートコード <code>[author_panel]</code> を使用します。</p>
+
+    <h3>基本的な使い方</h3>
+    <pre><code>[author_panel persons="1" mode="standard"]</code></pre>
+    <p>上記の例では、ID=1のPersonエンティティをstandardモード（自己完結型JSON-LD付き）で表示します。</p>
+
+    <h3>主な属性</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">属性</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>persons</td>
+                <td>表示するPersonエンティティのID（カンマ区切りで複数指定可）</td>
+            </tr>
+            <tr>
+                <td>corporations</td>
+                <td>表示するCorporationエンティティのID（カンマ区切りで複数指定可）</td>
+            </tr>
+            <tr>
+                <td>organizations</td>
+                <td>表示するOrganizationエンティティのID（カンマ区切りで複数指定可）</td>
+            </tr>
+            <tr>
+                <td>mode</td>
+                <td>standard（自己完結型JSON-LD）または custom（既存スキーマ連携）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>属性の詳細やcustomモードについては、<a href="panel-management.html">エンティティ管理・パネル表示</a>ページで詳しく解説しています。</p>
+    </div>
+
+    <h2>Gutenbergブロックの使い方</h2>
+
+    <p>ブロックエディターを使用している場合は、<code>kapm/author-panel</code> ブロックを使って視覚的にパネルを配置できます。</p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>ブロックエディターで「+」ボタンをクリックし、「Author Panel」を検索して追加します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>ブロックのサイドバー設定から、表示するエンティティタイプ・ID・モード・パネルスタイルを選択します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>エディター上でプレビューを確認し、公開します。</p>
+        </div>
+    </div>
+
+    <h2>Standardモードと Customモード</h2>
+
+    <h3>Standardモード</h3>
+    <p>Standardモードでは、エンティティの情報から自己完結型のJSON-LDを自動生成します。著者パネルとともにPerson/Organizationスキーマがページに直接出力されます。単独で著者情報を構造化データとして提供したい場合に使用します。</p>
+
+    <h3>Customモード</h3>
+    <p>Customモードでは、ページ上に既に存在するArticle・NewsArticle・WebPageなどのスキーマの <code>author</code> プロパティにエンティティ情報をリンクさせます。他のSEOプラグインがスキーマを出力している環境で、著者情報を既存のスキーマに統合したい場合に使用します。</p>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">注意</div>
+        <p>Customモードを使用する場合は、リンク先となるスキーマ（Article等）が別途ページに出力されている必要があります。対象のスキーマIDを <code>target_schema_id</code> 属性で指定してください。</p>
+    </div>
+
+    <nav class="page-nav">
+        <a href="index.html" class="prev">&laquo; 概要</a>
+        <a href="panel-management.html" class="next">エンティティ管理・パネル表示 &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

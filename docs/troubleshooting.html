@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トラブルシューティング - Kashiwazaki SEO Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニュー">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="panel-management.html">エンティティ管理・パネル表示</a></li>
+        <li class="active"><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>トラブルシューティング</h1>
+    <p class="lead">Kashiwazaki SEO Author Panel Manager の使用中に発生しうる問題と対処法、データベース・アンインストールに関する注意事項、技術仕様について解説します。</p>
+
+    <h2>よくある問題と対処法</h2>
+
+    <h3>パネルが表示されない</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">考えられる原因</th>
+                <th>対処法</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>プラグインが有効化されていない</td>
+                <td>管理画面の「プラグイン」一覧で、本プラグインが有効になっていることを確認してください。</td>
+            </tr>
+            <tr>
+                <td>ショートコードの記述ミス</td>
+                <td>ショートコードが <code>[author_panel persons="1" mode="standard"]</code> の形式で正しく記述されているか確認してください。属性名や引用符のミスに注意してください。</td>
+            </tr>
+            <tr>
+                <td>指定したIDのエンティティが存在しない</td>
+                <td>管理画面（admin.php?page=kapm）で該当IDのエンティティが登録されているか確認してください。</td>
+            </tr>
+            <tr>
+                <td>Gutenbergブロックが正しく挿入されていない</td>
+                <td>ブロックエディターで「Author Panel」ブロックを再度追加し、サイドバーでエンティティIDとモードを正しく設定してください。</td>
+            </tr>
+            <tr>
+                <td>キャッシュプラグインが古い出力を表示している</td>
+                <td>キャッシュプラグイン（WP Super Cache、W3 Total Cacheなど）のキャッシュをクリアしてください。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>JSON-LDが出力されない</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">考えられる原因</th>
+                <th>対処法</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>テーマが <code>wp_head()</code> を呼び出していない</td>
+                <td>テーマの <code>header.php</code> に <code>&lt;?php wp_head(); ?&gt;</code> が記述されていることを確認してください。</td>
+            </tr>
+            <tr>
+                <td>エンティティの必須フィールドが未入力</td>
+                <td>管理画面で該当エンティティの <code>name</code> フィールドが入力されていることを確認してください。名前が空の場合、JSON-LDは出力されません。</td>
+            </tr>
+            <tr>
+                <td>他のSEOプラグインとの競合</td>
+                <td>他のプラグインが同じエンティティのJSON-LDを出力している場合、重複を避けるためCustomモードの使用を検討してください。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Customモードが機能しない</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">考えられる原因</th>
+                <th>対処法</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>target_schema_idが未指定</td>
+                <td>Customモードでは <code>target_schema_id</code> 属性でリンク先スキーマの <code>@id</code> を指定する必要があります。例: <code>target_schema_id="#article"</code></td>
+            </tr>
+            <tr>
+                <td>リンク先のスキーマがページに存在しない</td>
+                <td>対象のArticle・NewsArticle・WebPageスキーマが同一ページ上にJSON-LDとして出力されていることを確認してください。</td>
+            </tr>
+            <tr>
+                <td>@idの不一致</td>
+                <td><code>target_schema_id</code> で指定した値と、リンク先スキーマの <code>@id</code> が完全に一致しているか確認してください。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>パネルのスタイルが適用されない</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">考えられる原因</th>
+                <th>対処法</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>CSSファイルが読み込まれていない</td>
+                <td>ブラウザの開発者ツールで <code>public/css/panel-style.css</code> が正常に読み込まれているか確認してください。</td>
+            </tr>
+            <tr>
+                <td>テーマのCSSとの競合</td>
+                <td>テーマのCSSがパネルのスタイルを上書きしている可能性があります。開発者ツールで優先度を確認してください。</td>
+            </tr>
+            <tr>
+                <td>panel_styleの設定漏れ</td>
+                <td>管理画面で該当エンティティの <code>panel_style</code> フィールドが正しく設定されているか確認してください。未設定の場合は <code>default</code> が適用されます。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>問題が解決しない場合は、一度プラグインを無効化してから再有効化してみてください。再有効化時にデータベーステーブルの整合性チェックが実行されます。</p>
+    </div>
+
+    <h2>データベースとアンインストール</h2>
+
+    <p>本プラグインは以下の3つの専用テーブルを使用してエンティティデータを保存します。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">テーブル名</th>
+                <th>用途</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{prefix}_apm_persons</td>
+                <td>Personエンティティのデータを保存</td>
+            </tr>
+            <tr>
+                <td>{prefix}_apm_corporations</td>
+                <td>Corporationエンティティのデータを保存</td>
+            </tr>
+            <tr>
+                <td>{prefix}_apm_organizations</td>
+                <td>Organizationエンティティのデータを保存</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">注意</div>
+        <p>プラグインを削除（アンインストール）すると、上記の3テーブルがデータベースから完全に削除されます。登録済みのエンティティデータはすべて失われます。プラグインの無効化だけではテーブルは削除されません。</p>
+    </div>
+
+    <div class="callout callout-note">
+        <div class="callout-title">補足</div>
+        <p>本プラグインは <code>wp_options</code> テーブルを使用しません。また、AJAX通信、Cronイベント、外部APIへの通信も行いません。データベースへの影響は上記3テーブルのみです。</p>
+    </div>
+
+    <h2>技術仕様</h2>
+
+    <ul>
+        <li><strong>データ保存:</strong> 専用テーブル（apm_persons, apm_corporations, apm_organizations）</li>
+        <li><strong>wp_options:</strong> 使用しない</li>
+        <li><strong>AJAX:</strong> 使用しない</li>
+        <li><strong>Cronイベント:</strong> なし</li>
+        <li><strong>外部API通信:</strong> なし</li>
+        <li><strong>REST API:</strong> kapm/v1/persons, kapm/v1/corporations, kapm/v1/organizations</li>
+        <li><strong>フロントエンドCSS:</strong> public/css/panel-style.css</li>
+        <li><strong>メール送信:</strong> なし</li>
+        <li><strong>セキュリティ:</strong> nonce検証、manage_options権限チェック、入出力サニタイズ</li>
+    </ul>
+
+    <h2>アーキテクチャ</h2>
+
+    <p>Kashiwazaki SEO Author Panel Manager は以下のコンポーネントで構成されています。</p>
+
+    <figure class="infographic">
+        <img src="images/infographics/architecture.png" alt="プラグインアーキテクチャ図">
+        <figcaption>Kashiwazaki SEO Author Panel Manager のアーキテクチャ</figcaption>
+    </figure>
+
+    <h3>フロントエンド</h3>
+    <ul>
+        <li>CSSのみ（public/css/panel-style.css）で5種類のパネルスタイルを実装</li>
+        <li>JavaScriptは使用せず、Core Web Vitalsへの影響をゼロに</li>
+        <li>Person/Organization JSON-LD をページに出力（Standardモード）</li>
+    </ul>
+
+    <h3>バックエンド</h3>
+    <ul>
+        <li>エンティティデータは専用テーブル（apm_persons, apm_corporations, apm_organizations）で管理</li>
+        <li>管理画面は3タブ構成（Person / Corporation / Organization）で直感的に操作可能</li>
+        <li>REST API（kapm/v1）でエンティティデータの取得が可能</li>
+        <li>管理画面は <code>manage_options</code> 権限のユーザーのみアクセス可能</li>
+        <li>すべてのフォーム送信に nonce 検証を実施</li>
+    </ul>
+
+    <h2>動作要件</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">項目</th>
+                <th>要件</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>WordPress</td>
+                <td>6.0 以上</td>
+            </tr>
+            <tr>
+                <td>PHP</td>
+                <td>8.0 以上</td>
+            </tr>
+            <tr>
+                <td>ライセンス</td>
+                <td>GPL-2.0+</td>
+            </tr>
+            <tr>
+                <td>対応ブラウザ</td>
+                <td>Chrome、Firefox、Safari、Edge（最新版）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <nav class="page-nav">
+        <a href="panel-management.html" class="prev">&laquo; エンティティ管理・パネル表示</a>
+        <span></span>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

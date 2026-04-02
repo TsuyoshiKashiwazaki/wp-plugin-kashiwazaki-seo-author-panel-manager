@@ -1,0 +1,80 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+class KAPM_Gutenberg {
+
+    public function __construct() {
+        add_action( 'init', array( $this, 'register_block' ) );
+        add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
+        add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+    }
+
+    public function register_block(): void {
+        register_block_type( 'kapm/author-panel', array(
+            'editor_script'   => 'kapm-editor-script',
+            'render_callback' => array( $this, 'render_block' ),
+            'attributes'      => array(
+                'persons'        => array( 'type' => 'string', 'default' => '' ),
+                'corporations'   => array( 'type' => 'string', 'default' => '' ),
+                'organizations'  => array( 'type' => 'string', 'default' => '' ),
+                'mode'           => array( 'type' => 'string', 'default' => 'standard' ),
+                'targetSchemaId' => array( 'type' => 'string', 'default' => '' ),
+                'labels'         => array( 'type' => 'string', 'default' => '{}' ),
+            ),
+        ) );
+    }
+
+    public function enqueue_editor_assets(): void {
+        $js_file = KAPM_PLUGIN_PATH . 'assets/js/gutenberg-sidebar.js';
+        if ( ! file_exists( $js_file ) ) {
+            return;
+        }
+
+        $data_js = 'var kapmData = ' . wp_json_encode( array(
+            'restUrl'  => rest_url( 'kapm/v1/' ),
+            'nonce'    => wp_create_nonce( 'wp_rest' ),
+            'adminUrl' => admin_url( 'admin.php?page=kapm' ),
+        ) ) . ';';
+
+        $block_js = file_get_contents( $js_file );
+        if ( $block_js === false ) {
+            return;
+        }
+
+        wp_register_script( 'kapm-editor-script', false, array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-editor', 'wp-components', 'wp-data' ), KAPM_VERSION );
+        wp_add_inline_script( 'kapm-editor-script', $data_js . "\n" . $block_js );
+        wp_enqueue_script( 'kapm-editor-script' );
+    }
+
+    public function render_block( array $attributes ): string {
+        global $kapm_shortcode;
+        return $kapm_shortcode->render( array(
+            'persons'          => $attributes['persons'] ?? '',
+            'corporations'     => $attributes['corporations'] ?? '',
+            'organizations'    => $attributes['organizations'] ?? '',
+            'mode'             => $attributes['mode'] ?? 'standard',
+            'target_schema_id' => $attributes['targetSchemaId'] ?? '',
+            'labels'           => $attributes['labels'] ?? '{}',
+        ) );
+    }
+
+    public function register_rest_routes(): void {
+        register_rest_route( 'kapm/v1', '/persons', array(
+            'methods'             => 'GET',
+            'callback'            => function () { return new \WP_REST_Response( KAPM_Database::get_persons(), 200 ); },
+            'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
+        ) );
+        register_rest_route( 'kapm/v1', '/corporations', array(
+            'methods'             => 'GET',
+            'callback'            => function () { return new \WP_REST_Response( KAPM_Database::get_corporations(), 200 ); },
+            'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
+        ) );
+        register_rest_route( 'kapm/v1', '/organizations', array(
+            'methods'             => 'GET',
+            'callback'            => function () { return new \WP_REST_Response( KAPM_Database::get_organizations(), 200 ); },
+            'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
+        ) );
+    }
+}

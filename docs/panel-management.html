@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エンティティ管理・パネル表示 - Kashiwazaki SEO Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニュー">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="active"><a href="panel-management.html">エンティティ管理・パネル表示</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>エンティティ管理・パネル表示</h1>
+    <p class="lead">Person・Corporation・Organizationの3種類のエンティティの管理方法、5種類のパネルスタイル、ショートコード属性、Customモードの詳細について解説します。</p>
+
+    <h2>Person管理</h2>
+
+    <p>Personタブでは、著者や個人のエンティティ情報を管理します。登録された情報はSchema.orgのPersonスキーマとしてJSON-LDに変換されます。</p>
+
+    <h3>Personフィールド一覧</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">フィールド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>name</td>
+                <td>著者の名前（日本語）。パネルおよびJSON-LDの <code>name</code> に使用されます。</td>
+            </tr>
+            <tr>
+                <td>name_en</td>
+                <td>著者の英語名。多言語対応やsameAsの識別に使用されます。</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>著者の役割（例：著者、編集者、監修者）。パネルに表示されます。</td>
+            </tr>
+            <tr>
+                <td>job_title</td>
+                <td>肩書き・職業。JSON-LDの <code>jobTitle</code> に出力されます。</td>
+            </tr>
+            <tr>
+                <td>bio</td>
+                <td>略歴・自己紹介文。パネルの説明欄に表示されます。</td>
+            </tr>
+            <tr>
+                <td>image_url</td>
+                <td>プロフィール画像のURL。パネルおよびJSON-LDの <code>image</code> に使用されます。</td>
+            </tr>
+            <tr>
+                <td>url</td>
+                <td>著者の公式WebサイトURL。JSON-LDの <code>url</code> に出力されます。</td>
+            </tr>
+            <tr>
+                <td>same_as</td>
+                <td>外部プロフィールURL（SNS、Wikipediaなど）。改行区切りで複数指定。JSON-LDの <code>sameAs</code> 配列に出力されます。</td>
+            </tr>
+            <tr>
+                <td>panel_style</td>
+                <td>パネルのデザインスタイル（default / dark / accent / minimal / card）。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>エンティティの追加・編集・削除</h3>
+    <p>Personタブで「新規追加」をクリックすると入力フォームが表示されます。必要なフィールドを入力して「保存」をクリックします。既存のエンティティは一覧から選択して編集・削除が可能です。</p>
+
+    <h2>Corporation管理</h2>
+
+    <p>Corporationタブでは、企業・法人のエンティティ情報を管理します。登録された情報はSchema.orgのOrganizationスキーマとしてJSON-LDに変換されます。</p>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/02-corporation-tab.png" alt="Corporationタブの画面" class="lightbox-trigger">
+        <figcaption>Corporationタブでのエンティティ管理画面</figcaption>
+    </figure>
+
+    <h3>Corporationフィールド一覧</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">フィールド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>name</td>
+                <td>企業名（日本語）。パネルおよびJSON-LDの <code>name</code> に使用されます。</td>
+            </tr>
+            <tr>
+                <td>name_en</td>
+                <td>企業の英語名。</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>役割（例：運営会社、監修元、提携企業）。パネルに表示されます。</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>企業の説明文。パネルの説明欄に表示されます。</td>
+            </tr>
+            <tr>
+                <td>url</td>
+                <td>企業の公式WebサイトURL。JSON-LDの <code>url</code> に出力されます。</td>
+            </tr>
+            <tr>
+                <td>logo_url</td>
+                <td>企業ロゴのURL。JSON-LDの <code>logo</code> に出力されます。</td>
+            </tr>
+            <tr>
+                <td>same_as</td>
+                <td>外部プロフィールURL（SNS、コーポレートサイトなど）。改行区切りで複数指定。</td>
+            </tr>
+            <tr>
+                <td>panel_style</td>
+                <td>パネルのデザインスタイル（default / dark / accent / minimal / card）。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Organization管理</h2>
+
+    <p>Organizationタブでは、団体・機関・非営利組織などのエンティティ情報を管理します。フィールド構成はCorporationと同様です。用途に応じてCorporationとOrganizationを使い分けてください。</p>
+
+    <h3>Organizationフィールド一覧</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">フィールド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>name</td>
+                <td>組織名（日本語）。パネルおよびJSON-LDの <code>name</code> に使用されます。</td>
+            </tr>
+            <tr>
+                <td>name_en</td>
+                <td>組織の英語名。</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>役割（例：監修機関、協力団体）。パネルに表示されます。</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>組織の説明文。パネルの説明欄に表示されます。</td>
+            </tr>
+            <tr>
+                <td>url</td>
+                <td>組織の公式WebサイトURL。JSON-LDの <code>url</code> に出力されます。</td>
+            </tr>
+            <tr>
+                <td>logo_url</td>
+                <td>組織ロゴのURL。JSON-LDの <code>logo</code> に出力されます。</td>
+            </tr>
+            <tr>
+                <td>same_as</td>
+                <td>外部プロフィールURL。改行区切りで複数指定。</td>
+            </tr>
+            <tr>
+                <td>panel_style</td>
+                <td>パネルのデザインスタイル（default / dark / accent / minimal / card）。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>パネルスタイル</h2>
+
+    <p>5種類のパネルスタイルから、サイトのデザインに合ったスタイルを選択できます。スタイルは <code>public/css/panel-style.css</code> で定義されています。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">スタイル名</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>default</td>
+                <td>シンプルで汎用的なデザイン。多くのテーマと調和します。</td>
+            </tr>
+            <tr>
+                <td>dark</td>
+                <td>ダークカラーベースのデザイン。暗めのテーマや強いコントラストが必要な場合に適しています。</td>
+            </tr>
+            <tr>
+                <td>accent</td>
+                <td>アクセントカラーを使用したデザイン。パネルを目立たせたい場合に適しています。</td>
+            </tr>
+            <tr>
+                <td>minimal</td>
+                <td>装飾を最小限に抑えたデザイン。コンテンツに溶け込むレイアウトです。</td>
+            </tr>
+            <tr>
+                <td>card</td>
+                <td>カード型のデザイン。影や角丸を活用した現代的なUIです。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>フロントエンド表示例</h3>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/03-frontend-panel.png" alt="フロントエンドでのパネル表示例" class="lightbox-trigger">
+        <figcaption>ショートコードで挿入された著者パネルのフロントエンド表示例</figcaption>
+    </figure>
+
+    <h2>ショートコード属性一覧</h2>
+
+    <p>ショートコード <code>[author_panel]</code> で使用可能な属性の一覧です。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">属性</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>persons</td>
+                <td>表示するPersonエンティティのID。カンマ区切りで複数指定可。例: <code>persons="1,3"</code></td>
+            </tr>
+            <tr>
+                <td>corporations</td>
+                <td>表示するCorporationエンティティのID。カンマ区切りで複数指定可。例: <code>corporations="2"</code></td>
+            </tr>
+            <tr>
+                <td>organizations</td>
+                <td>表示するOrganizationエンティティのID。カンマ区切りで複数指定可。例: <code>organizations="1,2"</code></td>
+            </tr>
+            <tr>
+                <td>mode</td>
+                <td>出力モード。<code>standard</code>（自己完結型JSON-LD）または <code>custom</code>（既存スキーマ連携）。デフォルト: <code>standard</code></td>
+            </tr>
+            <tr>
+                <td>target_schema_id</td>
+                <td>Customモード時にリンクする既存スキーマの@id。例: <code>target_schema_id="#article"</code></td>
+            </tr>
+            <tr>
+                <td>labels</td>
+                <td>パネルに表示するラベルテキスト。エンティティの役割表示をカスタマイズできます。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>使用例</h3>
+    <pre><code>&lt;!-- Standardモード：Person ID=1 を表示 --&gt;
+[author_panel persons="1" mode="standard"]
+
+&lt;!-- 複数エンティティを同時表示 --&gt;
+[author_panel persons="1,2" corporations="1" mode="standard"]
+
+&lt;!-- Customモード：既存のArticleスキーマにリンク --&gt;
+[author_panel persons="1" mode="custom" target_schema_id="#article"]</code></pre>
+
+    <h2>Customモードの詳細</h2>
+
+    <p>Customモードは、ページ上に既に出力されているArticle・NewsArticle・WebPageなどのスキーマの <code>author</code> プロパティに、本プラグインのエンティティ情報を連携させるモードです。</p>
+
+    <h3>Customモードの仕組み</h3>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>他のSEOプラグイン等がArticleスキーマをJSON-LDで出力しているページを用意します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>ショートコードまたはGutenbergブロックで <code>mode="custom"</code> を指定し、<code>target_schema_id</code> にリンク先スキーマの <code>@id</code> を設定します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>プラグインはJSON-LDの <code>author</code> プロパティに <code>@id</code> 参照を出力し、既存スキーマとエンティティ情報をリンクさせます。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">注意</div>
+        <p>Customモードでは、リンク先のスキーマが同一ページ上にJSON-LDとして出力されている必要があります。対象スキーマが存在しない場合、author参照は機能しません。</p>
+    </div>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>Standardモードで十分な場合がほとんどです。他のSEOプラグインとの連携が必要な場合にのみCustomモードを使用してください。</p>
+    </div>
+
+    <figure class="infographic">
+        <img src="images/infographics/overview-flow.png" alt="エンティティ管理からパネル表示までのフロー図">
+        <figcaption>エンティティ登録からフロントエンド表示・JSON-LD出力までの全体フロー</figcaption>
+    </figure>
+
+    <nav class="page-nav">
+        <a href="setup.html" class="prev">&laquo; インストール・初期設定</a>
+        <a href="troubleshooting.html" class="next">トラブルシューティング &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

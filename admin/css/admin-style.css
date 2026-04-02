@@ -1,0 +1,48 @@
+.column-id {
+    width: 50px;
+}
+.kapm-delete-link {
+    color: #b32d2e;
+}
+.kapm-delete-link:hover {
+    color: #a00;
+}
+.kapm-tab-content {
+    margin-top: 16px;
+}
+.kapm-tooltip {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+    color: #888;
+    cursor: help;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+.kapm-tooltip-content {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+#kapm-tooltip-popup {
+    position: fixed;
+    z-index: 100000;
+    width: 380px;
+    padding: 12px 14px;
+    background: #333;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 12.5px;
+    font-weight: normal;
+    line-height: 1.7;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    white-space: normal;
+    pointer-events: none;
+    display: none;
+}
+#kapm-tooltip-popup strong {
+    color: #8cc5ff;
+}
