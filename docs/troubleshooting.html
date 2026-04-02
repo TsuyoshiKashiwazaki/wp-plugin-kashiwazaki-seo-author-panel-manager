@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トラブルシューティング - Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="entity-management.html">エンティティ管理</a></li>
+        <li><a href="shortcode-block.html">ショートコード＆ブロック</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>トラブルシューティング</h1>
+
+    <p>よくある問題とその解決方法をまとめています。</p>
+
+    <h2>よくある問題と解決策</h2>
+
+    <h3>著者パネルが表示されない</h3>
+
+    <p>原因: ショートコードにエンティティIDが未指定、または指定したIDのエンティティが存在しない。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>ショートコードに指定したIDが正しいか確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>管理画面でエンティティが実際に存在するか確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>プラグインが有効化されているか確認してください。</p>
+        </div>
+    </div>
+
+    <h3>JSON-LDが出力されない</h3>
+
+    <p>原因: Customモードで<code>target_schema_id</code>が未指定。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p><code>mode="custom"</code>を指定している場合は、<code>target_schema_id</code>も必ず指定してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>Standardモードの場合は、ページのソースコードで<code>application/ld+json</code>を検索し、出力を確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>Customモードの場合は、<code>&lt;head&gt;</code>内にJSON-LDが出力されているか確認してください。</p>
+        </div>
+    </div>
+
+    <h3>Gutenbergブロックでエンティティが表示されない</h3>
+
+    <p>原因: REST APIの権限が不足している。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>現在のユーザーに<code>edit_posts</code>権限があるか確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>エンティティが管理画面から正しく登録されているか確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>ブラウザで<code>/wp-json/kapm/v1/persons</code>にアクセスし、APIレスポンスを確認してください。</p>
+        </div>
+    </div>
+
+    <h3>パネルのスタイルが崩れる</h3>
+
+    <p>原因: テーマのCSSとの競合。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>ブラウザの開発者ツールで<code>.kapm-author-panel</code>のスタイルを確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>テーマのCSSで競合しているプロパティを調整してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p><code>panel-style.css</code>の読み込み順序が正しいか確認してください。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">ヒント</div>
+        <p>デフォルトテーマ（Twenty Twenty-Fourなど）に一時的に切り替えることで、テーマ固有の問題かプラグインの問題かを切り分けられます。</p>
+    </div>
+
+    <h2>動作要件</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">項目</th>
+                <th>要件</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>WordPress</td>
+                <td>6.0以上</td>
+            </tr>
+            <tr>
+                <td>PHP</td>
+                <td>8.0以上</td>
+            </tr>
+            <tr>
+                <td>対応ブラウザ</td>
+                <td>Chrome / Firefox / Safari / Edge 最新版</td>
+            </tr>
+            <tr>
+                <td>管理権限</td>
+                <td>manage_options</td>
+            </tr>
+            <tr>
+                <td>ブロック権限</td>
+                <td>edit_posts</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>技術仕様</h2>
+
+    <h3>データ保存</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">項目</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>カスタムテーブル</td>
+                <td>3テーブル（prefix_apm_persons / prefix_apm_corporations / prefix_apm_organizations）</td>
+            </tr>
+            <tr>
+                <td>wp_options</td>
+                <td>未使用</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>フロントエンド</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">項目</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>CSS</td>
+                <td>panel-style.css（約4KB）</td>
+            </tr>
+            <tr>
+                <td>JavaScript</td>
+                <td>なし</td>
+            </tr>
+            <tr>
+                <td>JSON-LD（Standard）</td>
+                <td>パネル直後に出力</td>
+            </tr>
+            <tr>
+                <td>JSON-LD（Custom）</td>
+                <td>wp_head（priority 99）で出力</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>REST API</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">エンドポイント</th>
+                <th>メソッド</th>
+                <th>権限</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>/kapm/v1/persons</td>
+                <td>GET</td>
+                <td>edit_posts</td>
+            </tr>
+            <tr>
+                <td>/kapm/v1/corporations</td>
+                <td>GET</td>
+                <td>edit_posts</td>
+            </tr>
+            <tr>
+                <td>/kapm/v1/organizations</td>
+                <td>GET</td>
+                <td>edit_posts</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>セキュリティ</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">対策</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>nonce検証</td>
+                <td>すべての管理画面リクエストでnonce検証を実施</td>
+            </tr>
+            <tr>
+                <td>権限チェック</td>
+                <td>manage_options / edit_postsによる権限制御</td>
+            </tr>
+            <tr>
+                <td>入力サニタイズ</td>
+                <td>sanitize_text_field等による入力値の無害化</td>
+            </tr>
+            <tr>
+                <td>出力エスケープ</td>
+                <td>esc_html / esc_attr / esc_url等による出力エスケープ</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <figure class="infographic">
+        <img src="images/infographics/architecture.png" alt="Kashiwazaki SEO Author Panel Manager のアーキテクチャ">
+        <figcaption>Kashiwazaki SEO Author Panel Manager のアーキテクチャ</figcaption>
+    </figure>
+
+    <nav class="page-nav">
+        <a href="shortcode-block.html" class="prev">&laquo; ショートコード＆ブロック</a>
+        <span></span>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

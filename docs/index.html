@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>概要 - Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="entity-management.html">エンティティ管理</a></li>
+        <li><a href="shortcode-block.html">ショートコード＆ブロック</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>Kashiwazaki SEO Author Panel Manager マニュアル</h1>
+    <img src="images/main-visual.png" alt="Author Panel Manager メインビジュアル" style="width:100%;border-radius:8px;margin-bottom:24px;">
+
+    <p>Person・Corporation・Organization の3種類のエンティティを独立データベースで管理し、著者パネルとSchema.org JSON-LD構造化データを出力するWordPress SEOプラグインです。</p>
+
+    <p>E-E-A-T（経験・専門性・権威性・信頼性）はGoogleの検索品質評価において重要な概念です。本プラグインは、著者・企業・組織の情報を構造化データとして正確に出力することで、検索エンジンやAIがコンテンツの信頼性を評価する際の手がかりを提供します。</p>
+
+    <div class="feature-cards">
+        <div class="feature-card">
+            <h3>エンティティ管理</h3>
+            <p>Person・Corporation・Organization の3種類をタブ切替で一元管理</p>
+        </div>
+        <div class="feature-card">
+            <h3>JSON-LD出力</h3>
+            <p>Schema.org準拠の構造化データをStandard/Customモードで自動生成</p>
+        </div>
+        <div class="feature-card">
+            <h3>Gutenbergブロック</h3>
+            <p>ブロックエディタから直感的に著者パネルを挿入・プレビュー</p>
+        </div>
+    </div>
+
+    <h2>SEO / GEO における強み</h2>
+
+    <h3>構造化データによるE-E-A-T支援</h3>
+    <p>本プラグインはPerson・Organization・Corporationの構造化データをJSON-LDで出力します。Schema.orgに準拠した著者情報をページに埋め込むことで、検索エンジンがコンテンツの著者・発行者・レビュアーを正確に識別できるようになり、E-E-A-T評価の手がかりとなる可能性があります。</p>
+
+    <h3>Customモードによる既存スキーマとの連携</h3>
+    <p>Customモードでは、他のプラグインが出力したArticle/NewsArticle/WebPageスキーマの@idを参照し、author/publisher/editorなどのプロパティとしてエンティティを紐づけることができます。これにより、ページ内の構造化データの整合性が向上し、リッチリザルトの表示可能性が高まります。</p>
+
+    <h3>Core Web Vitals への影響</h3>
+    <p>フロントエンドCSSは約4KBのみで、JavaScriptは一切使用しません（管理画面・ブロックエディタ用のJSを除く）。そのためCore Web Vitals指標に悪影響を与えることはありません。</p>
+
+    <h3>生成AI（GEO）への対応</h3>
+    <p>JSON-LDで出力された著者・組織の構造化データは、AIがコンテンツの信頼性や著者の専門性を判断する際の機械可読な情報源となります。sameAsプロパティによる外部プロフィールへのリンクは、エンティティの同一性確認に役立ちます。</p>
+
+    <figure class="infographic">
+        <img src="images/infographics/overview-flow.png" alt="プラグイン概要フロー図">
+        <figcaption>Kashiwazaki SEO Author Panel Manager の全体フロー</figcaption>
+    </figure>
+
+    <h2>目次</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">ページ</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><a href="index.html">概要</a></td>
+                <td>プラグインの概要・特徴・動作要件</td>
+            </tr>
+            <tr>
+                <td><a href="setup.html">インストール・初期設定</a></td>
+                <td>インストール方法と初期設定の手順</td>
+            </tr>
+            <tr>
+                <td><a href="entity-management.html">エンティティ管理</a></td>
+                <td>Person・Corporation・Organizationの登録・編集・削除</td>
+            </tr>
+            <tr>
+                <td><a href="shortcode-block.html">ショートコード＆ブロック</a></td>
+                <td>ショートコードとGutenbergブロックの使い方</td>
+            </tr>
+            <tr>
+                <td><a href="troubleshooting.html">トラブルシューティング</a></td>
+                <td>よくある問題と解決方法</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>動作要件</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">項目</th>
+                <th>要件</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>WordPress</td>
+                <td>6.0以上</td>
+            </tr>
+            <tr>
+                <td>PHP</td>
+                <td>8.0以上</td>
+            </tr>
+            <tr>
+                <td>対応ブラウザ</td>
+                <td>Chrome / Firefox / Safari / Edge 最新版</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <p>インストール後すぐに使い始めたい場合は、<a href="setup.html">インストール・初期設定</a>ページに進んでください。</p>
+    </div>
+
+    <nav class="page-nav">
+        <span></span>
+        <a href="setup.html" class="next">インストール・初期設定 &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+/* ============================================
+   Base
+   ============================================ */
+.kapm-author-panel {
+    margin: 1.5em 0;
+    padding: 0;
+}
+
+.kapm-author-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+
+.kapm-author-card:last-child {
+    margin-bottom: 0;
+}
+
+.kapm-author-image-wrap {
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.kapm-author-image img {
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.kapm-author-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.kapm-author-label {
+    font-size: 0.7em;
+    color: #555;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.kapm-author-name {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.kapm-author-name a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.kapm-author-name a:hover {
+    text-decoration: underline;
+}
+
+.kapm-name-en {
+    font-weight: 400;
+    font-size: 0.85em;
+    color: #666;
+}
+
+.kapm-author-job {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.kapm-author-bio {
+    font-size: 0.9em;
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 4px;
+}
+
+.kapm-social-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+.kapm-icon,
+.kapm-icon:hover,
+.kapm-icon:focus,
+.kapm-icon:visited,
+.kapm-icon:active {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+.kapm-icon {
+    width: 26px;
+    height: 26px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #666;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.kapm-icon:hover {
+    background: #f0f0f0;
+    color: #333;
+    border-color: #999;
+}
+
+.kapm-icon .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 1;
+}
+
+/* ============================================
+   Entity type hooks (for theme customization)
+   .kapm-person, .kapm-corporation, .kapm-organization
+   ============================================ */
+
+/* ============================================
+   Style: Default (kapm-style-default)
+   既にベーススタイルがそのまま適用される
+   ============================================ */
+
+/* ============================================
+   Style: Dark
+   WCAG AA準拠: 背景#2b2d42に対し全テキスト4.5:1以上
+   ============================================ */
+.kapm-style-dark {
+    background: #2b2d42;
+    border: 1px solid #5c6080;
+    border-left: 4px solid #8ecae6;
+    color: #edf2f4;
+}
+
+.kapm-style-dark .kapm-author-label {
+    color: #8ecae6;
+}
+
+.kapm-style-dark .kapm-author-name,
+.kapm-style-dark .kapm-author-name a {
+    color: #ffffff;
+}
+
+.kapm-style-dark .kapm-author-name a:hover {
+    color: #8ecae6;
+}
+
+.kapm-style-dark .kapm-name-en {
+    color: #b0b5c9;
+}
+
+.kapm-style-dark .kapm-author-job {
+    color: #d4d8e8;
+}
+
+.kapm-style-dark .kapm-author-bio {
+    color: #edf2f4;
+}
+
+.kapm-style-dark .kapm-icon {
+    background: #edf2f4;
+    border-color: #edf2f4;
+    color: #2b2d42;
+}
+
+.kapm-style-dark .kapm-icon:hover {
+    background: #8ecae6;
+    border-color: #8ecae6;
+    color: #2b2d42;
+}
+
+/* ============================================
+   Style: Accent (左ボーダー)
+   ============================================ */
+.kapm-style-accent {
+    background: #fff;
+    border: none;
+    border-left: 4px solid #0073aa;
+    border-radius: 0;
+    padding-left: 20px;
+}
+
+.kapm-style-accent .kapm-author-label {
+    color: #0073aa;
+    font-weight: 600;
+}
+
+/* ============================================
+   Style: Minimal (ボーダーなし)
+   ============================================ */
+.kapm-style-minimal {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.kapm-style-minimal:last-child {
+    border-bottom: none;
+}
+
+/* ============================================
+   Style: Card (シャドウ付き)
+   ============================================ */
+.kapm-style-card {
+    background: #fff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 20px 24px;
+}
+
+.kapm-style-card .kapm-author-label {
+    color: #0073aa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7em;
+    letter-spacing: 0.08em;
+}

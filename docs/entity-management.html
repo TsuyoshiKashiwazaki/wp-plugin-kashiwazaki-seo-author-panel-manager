@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エンティティ管理 - Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="entity-management.html">エンティティ管理</a></li>
+        <li><a href="shortcode-block.html">ショートコード＆ブロック</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>エンティティ管理</h1>
+    <p class="lead">Person（個人）・Corporation（企業）・Organization（組織）の3種類のエンティティを登録・編集・削除する方法を解説します。</p>
+
+    <h2>Person（個人）の管理</h2>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>WordPress管理画面のサイドバーから「Author Panel Manager」を開き、<strong>Personタブ</strong>をクリックします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p><strong>新規追加</strong>ボタンをクリックして、Person登録画面を開きます。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>各フィールドを入力し、<strong>保存</strong>をクリックして登録を完了します。</p>
+        </div>
+    </div>
+
+    <div class="screenshot"><img src="images/screenshots/02-person-edit.png" class="lightbox-trigger"></div>
+
+    <h3>Personのフィールド一覧</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">フィールド名</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>名前</td>
+                <td>表示名として使用される日本語の氏名です。</td>
+            </tr>
+            <tr>
+                <td>英語名</td>
+                <td>構造化データ（JSON-LD）に出力される英語表記の名前です。</td>
+            </tr>
+            <tr>
+                <td>Role</td>
+                <td>Author（著者）、Reviewer（レビュアー）、Editor（編集者）、Contributor（寄稿者）、Creator（作成者）、Translator（翻訳者）から選択します。</td>
+            </tr>
+            <tr>
+                <td>肩書き</td>
+                <td>役職や専門分野などの肩書きを入力します。</td>
+            </tr>
+            <tr>
+                <td>自己紹介</td>
+                <td>著者パネルに表示される自己紹介文です。</td>
+            </tr>
+            <tr>
+                <td>画像</td>
+                <td>プロフィール画像をメディアライブラリから選択またはアップロードします。</td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>個人サイトやプロフィールページのURLです。</td>
+            </tr>
+            <tr>
+                <td>sameAs URL</td>
+                <td>SNSや外部プロフィール（X、LinkedIn等）のURLを複数登録できます。構造化データの<code>sameAs</code>プロパティに出力されます。</td>
+            </tr>
+            <tr>
+                <td>パネルデザイン</td>
+                <td>著者パネルの表示デザインを選択します。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">Roleの選び方</div>
+        <p>記事執筆者は<strong>Author</strong>、レビュー担当は<strong>Reviewer</strong>、編集者は<strong>Editor</strong>を選択してください。適切なRoleを設定することで、構造化データが正しく出力され、検索エンジンに正確な情報を伝えられます。</p>
+    </div>
+
+    <h2>Corporation（企業）の管理</h2>
+
+    <p>Corporationタブでは、企業情報を登録・管理できます。Publisher（発行者）やSponsor（スポンサー）など、記事に関連する企業エンティティを設定します。</p>
+
+    <div class="screenshot"><img src="images/screenshots/03-corporation-list.png" class="lightbox-trigger"></div>
+
+    <h3>Corporationのフィールド一覧</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">フィールド名</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>名前</td>
+                <td>企業の日本語名称です。</td>
+            </tr>
+            <tr>
+                <td>英語名</td>
+                <td>構造化データに出力される英語表記の企業名です。</td>
+            </tr>
+            <tr>
+                <td>Role</td>
+                <td>Publisher（発行者）、Sponsor（スポンサー）など、記事における企業の役割を選択します。</td>
+            </tr>
+            <tr>
+                <td>説明</td>
+                <td>企業の概要や事業内容を記述します。</td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td>企業の公式サイトURLです。</td>
+            </tr>
+            <tr>
+                <td>ロゴ</td>
+                <td>企業ロゴ画像をメディアライブラリから選択またはアップロードします。</td>
+            </tr>
+            <tr>
+                <td>sameAs URL</td>
+                <td>企業の公式SNSアカウントや外部プロフィールのURLを複数登録できます。</td>
+            </tr>
+            <tr>
+                <td>パネルデザイン</td>
+                <td>著者パネルの表示デザインを選択します。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Organization（組織）の管理</h2>
+
+    <p>Organizationタブでは、研究機関、NPO、業界団体などの組織情報を管理します。フィールド構成はCorporationと同一ですが、企業以外の組織を登録する際に使用します。</p>
+
+    <div class="screenshot"><img src="images/screenshots/04-organization-list.png" class="lightbox-trigger"></div>
+
+    <h2>使用中の記事の確認</h2>
+
+    <p>エンティティ編集画面の下部には「使用中の記事」セクションが表示されます。そのエンティティがどの記事で参照されているかを一覧で確認できます。</p>
+
+    <div class="callout callout-note">
+        <div class="callout-title">削除前の確認</div>
+        <p>エンティティを削除する前に、必ず「使用中の記事」セクションを確認し、参照しているすべての記事からエンティティの紐付けを解除してください。</p>
+    </div>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">アンインストール時のデータ削除</div>
+        <p>プラグインをアンインストールすると、3つのカスタムテーブル（<code>wp_apm_persons</code>、<code>wp_apm_corporations</code>、<code>wp_apm_organizations</code>）がすべて削除されます。必要なデータは事前にバックアップしてください。</p>
+    </div>
+
+    <figure class="infographic">
+        <img src="images/infographics/entity-management-flow.png">
+        <figcaption>エンティティの登録から表示までの流れ</figcaption>
+    </figure>
+
+    <nav class="page-nav">
+        <a href="setup.html" class="prev">&laquo; インストール・初期設定</a>
+        <a href="shortcode-block.html" class="next">ショートコード＆ブロック &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>

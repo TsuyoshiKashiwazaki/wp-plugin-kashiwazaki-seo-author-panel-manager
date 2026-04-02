@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インストール・初期設定 - Author Panel Manager マニュアル</title>
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Author Panel Manager</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li><a href="entity-management.html">エンティティ管理</a></li>
+        <li><a href="shortcode-block.html">ショートコード＆ブロック</a></li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <h1>インストール・初期設定</h1>
+
+    <p>プラグインのインストールから初期設定まで、ステップバイステップで解説します。</p>
+
+    <h2>インストール方法</h2>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>プラグインファイルを <code>/wp-content/plugins/</code> にアップロード</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>WordPress管理画面「プラグイン」→「インストール済みプラグイン」から「Kashiwazaki SEO Author Panel Manager」を有効化</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>管理画面の左メニューに「Kashiwazaki SEO Author Panel Manager」が追加されます</p>
+        </div>
+    </div>
+
+    <div class="screenshot">
+        <img src="images/screenshots/00-menu-location.png" alt="メニュー位置" class="lightbox-trigger">
+    </div>
+
+    <div class="callout callout-tip">
+        <p>メニューアイコンは dashicons-id-alt（IDカード）アイコンです。</p>
+    </div>
+
+    <h2>管理画面の構成</h2>
+
+    <p>管理画面はPerson・Corporation・Organizationの3つのタブで構成されています。各タブからエンティティの一覧表示・新規追加・編集・削除が行えます。</p>
+
+    <div class="screenshot">
+        <img src="images/screenshots/01-person-list.png" alt="Person一覧画面" class="lightbox-trigger">
+    </div>
+
+    <h2>初期設定手順</h2>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>「Person」タブを選択し、「新規追加」をクリックして著者情報を登録</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>名前、英語名、Role、肩書き、自己紹介、画像URL、URL、sameAs URLを入力</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>必要に応じて「Corporation」「Organization」タブで企業・組織情報も登録</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <p>投稿に著者パネルを表示するには、Gutenbergブロックを挿入するか <code>[author_panel]</code> ショートコードを使用</p>
+        </div>
+    </div>
+
+    <h2>エンティティの種類</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">種類</th>
+                <th>Schema.org型</th>
+                <th>用途</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Person</td>
+                <td>schema:Person</td>
+                <td>個人の著者・編集者・レビュアー</td>
+            </tr>
+            <tr>
+                <td>Corporation</td>
+                <td>schema:Corporation</td>
+                <td>企業・法人</td>
+            </tr>
+            <tr>
+                <td>Organization</td>
+                <td>schema:Organization</td>
+                <td>団体・組織・非営利法人など</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>パネルデザイン</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">デザイン名</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Default</td>
+                <td>標準的なライトテーマのパネルデザイン</td>
+            </tr>
+            <tr>
+                <td>Dark</td>
+                <td>ダークテーマのパネルデザイン</td>
+            </tr>
+            <tr>
+                <td>Accent</td>
+                <td>アクセントカラーを強調したデザイン</td>
+            </tr>
+            <tr>
+                <td>Minimal</td>
+                <td>最小限の装飾でシンプルなデザイン</td>
+            </tr>
+            <tr>
+                <td>Card</td>
+                <td>カード型のデザイン</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <p>パネルデザインはエンティティ登録時に個別に設定できます。</p>
+    </div>
+
+    <nav class="page-nav">
+        <a href="index.html" class="prev">&laquo; 概要</a>
+        <a href="entity-management.html" class="next">エンティティ管理 &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.0</p>
+    </footer>
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js?v=1"></script>
+</body>
+</html>
