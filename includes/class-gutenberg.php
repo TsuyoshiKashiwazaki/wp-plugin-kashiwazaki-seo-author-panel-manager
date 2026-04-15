@@ -5,6 +5,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class KAPM_Gutenberg {
 
+    /**
+     * ブロックエディタで返す必要最小限のフィールド
+     * Person の bio / url / image_url / job_title、Corp/Org の description / logo_url / same_as 等の
+     * 個人情報寄りフィールドは REST レスポンスから除外する。
+     */
+    private const REST_PUBLIC_FIELDS = array( 'id', 'name', 'name_en', 'role' );
+
     public function __construct() {
         add_action( 'init', array( $this, 'register_block' ) );
         add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
@@ -60,21 +67,40 @@ class KAPM_Gutenberg {
         ) );
     }
 
+    /**
+     * REST ルートをエンティティ種別ごとにループ登録）
+     * permission_callback は edit_posts 維持だが、返却フィールドを最小化して情報漏洩を防ぐ
+     */
     public function register_rest_routes(): void {
-        register_rest_route( 'kapm/v1', '/persons', array(
-            'methods'             => 'GET',
-            'callback'            => function () { return new \WP_REST_Response( KAPM_Database::get_persons(), 200 ); },
-            'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
-        ) );
-        register_rest_route( 'kapm/v1', '/corporations', array(
-            'methods'             => 'GET',
-            'callback'            => function () { return new \WP_REST_Response( KAPM_Database::get_corporations(), 200 ); },
-            'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
-        ) );
-        register_rest_route( 'kapm/v1', '/organizations', array(
-            'methods'             => 'GET',
-            'callback'            => function () { return new \WP_REST_Response( KAPM_Database::get_organizations(), 200 ); },
-            'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
-        ) );
+        $routes = array(
+            'persons'       => 'person',
+            'corporations'  => 'corporation',
+            'organizations' => 'organization',
+        );
+
+        foreach ( $routes as $route => $type ) {
+            register_rest_route( 'kapm/v1', '/' . $route, array(
+                'methods'             => 'GET',
+                'callback'            => function () use ( $type ) {
+                    $rows     = KAPM_Database::get_entities( $type );
+                    $filtered = array_map( array( $this, 'filter_rest_fields' ), $rows );
+                    return new \WP_REST_Response( $filtered, 200 );
+                },
+                'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
+            ) );
+        }
+    }
+
+    /**
+     * REST レスポンス用に安全なフィールドのみ抽出
+     */
+    private function filter_rest_fields( array $entity ): array {
+        $filtered = array();
+        foreach ( self::REST_PUBLIC_FIELDS as $field ) {
+            if ( array_key_exists( $field, $entity ) ) {
+                $filtered[ $field ] = $entity[ $field ];
+            }
+        }
+        return $filtered;
     }
 }

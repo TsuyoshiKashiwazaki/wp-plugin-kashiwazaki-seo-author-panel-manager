@@ -27,10 +27,17 @@ jQuery(function ($) {
 });
 
 // ツールチップ（jQuery不要、即時実行）
+// innerHTML コピーは将来の XSS 表面を作るため、DOM コピーに変更
 (function () {
     var popup = document.createElement('div');
     popup.id = 'kapm-tooltip-popup';
     document.body.appendChild(popup);
+
+    function clearPopup() {
+        while (popup.firstChild) {
+            popup.removeChild(popup.firstChild);
+        }
+    }
 
     document.addEventListener('mouseover', function (e) {
         var trigger = e.target.closest('.kapm-tooltip');
@@ -38,7 +45,11 @@ jQuery(function ($) {
         var content = trigger.querySelector('.kapm-tooltip-content');
         if (!content) return;
         var rect = trigger.getBoundingClientRect();
-        popup.innerHTML = content.innerHTML;
+        clearPopup();
+        // 子ノードを cloneNode(true) で安全にコピー（innerHTML は使用しない）
+        for (var i = 0; i < content.childNodes.length; i++) {
+            popup.appendChild(content.childNodes[i].cloneNode(true));
+        }
         popup.style.top = (rect.bottom + 8) + 'px';
         popup.style.left = Math.min(rect.left, window.innerWidth - 400) + 'px';
         popup.style.display = 'block';

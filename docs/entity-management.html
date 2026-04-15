@@ -518,13 +518,13 @@
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p><strong>parse_blocks() で正確に照合</strong>：候補記事ごとに <code>parse_blocks()</code> を実行し、<code>kapm/author-panel</code> ブロックの <code>persons</code> / <code>corporations</code> / <code>organizations</code> 属性を実際にパースして、対象 ID がカンマ区切りリスト内に存在するかを検証します。</p>
+            <p><strong>parse_blocks() で再帰的に照合</strong>：候補記事ごとに <code>parse_blocks()</code> を実行し、<code>block_tree_contains_entity()</code> が <code>innerBlocks</code> を再帰的に辿ります。Group / Columns / Row / Reusable など <strong>ネストされたコンテナブロック内</strong>に配置された <code>kapm/author-panel</code> も検出対象です（v1.0.1 で追加）。</p>
         </div>
     </div>
 
     <div class="callout callout-warning">
         <div class="callout-title">検出対象の制限</div>
-        <p>この逆引きは <strong>Gutenberg ブロック経由の参照のみ</strong>を対象とします。ショートコード <code>[author_panel persons="..."]</code> で参照している場合、ブロック属性の JSON 形式とはパターンが一致しないため <strong>検出されません</strong>。また、公開済み（<code>publish</code>）以外の投稿ステータスも対象外です。</p>
+        <p>この逆引きは <strong>Gutenberg ブロック経由の参照のみ</strong>を対象とします。ショートコード <code>[author_panel persons="..."]</code> で参照している場合、ブロック属性の JSON 形式とはパターンが一致しないため <strong>検出されません</strong>。また、公開済み（<code>publish</code>）以外の投稿ステータスも対象外です。ネストブロック（Group / Columns 等）内の著者パネルは v1.0.1 以降で検出されます。</p>
     </div>
 
     <div class="callout callout-note">

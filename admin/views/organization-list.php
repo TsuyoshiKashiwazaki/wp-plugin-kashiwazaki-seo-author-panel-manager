@@ -22,7 +22,7 @@
                     <td><?php echo esc_html( $row['id'] ); ?></td>
                     <td><strong><?php echo esc_html( $row['name'] ); ?></strong></td>
                     <td><?php echo esc_html( $row['role'] ); ?></td>
-                    <td><?php echo esc_url( $row['url'] ); ?></td>
+                    <td><?php if ( ! empty( $row['url'] ) ) : ?><a href="<?php echo esc_url( $row['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $row['url'] ); ?></a><?php endif; ?></td>
                     <td>
                         <a href="<?php echo esc_url( admin_url( 'admin.php?page=kapm&tab=organization&action=edit&id=' . $row['id'] ) ); ?>"><?php esc_html_e( '編集', 'kashiwazaki-seo-author-panel-manager' ); ?></a>
                         |

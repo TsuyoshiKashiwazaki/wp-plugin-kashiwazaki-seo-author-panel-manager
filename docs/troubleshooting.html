@@ -124,6 +124,8 @@
         <li>ブロック属性の ID 文字列フォーマットが変則的な場合（通常の <code>"persons":"1,2"</code> 以外）</li>
     </ul>
 
+    <p>なお v1.0.1 から、Group / Columns / Row / Reusable ブロック内にネストされた <code>kapm/author-panel</code> も検出されるようになりました（v1.0.0 は top-level ブロックのみ走査）。</p>
+
     <div class="callout callout-note">
         <div class="callout-title">公開済み・ブロック経由のみ検出</div>
         <p>この制約はセキュリティや性能面の意図的な設計です。下書き投稿まで検索対象にすると LIKE 検索が重くなるため、<code>post_status='publish'</code> でフィルタしています。ショートコード経由の参照を検出したい場合は、本文内を <code>SELECT</code> で手動検索するか、該当箇所を Gutenberg ブロックに置き換えてください。</p>

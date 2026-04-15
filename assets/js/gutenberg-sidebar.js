@@ -66,11 +66,20 @@
                 setAttributes(obj);
             }
 
-            var labelsObj = JSON.parse(attributes.labels || '{}');
+            // 壊れた labels JSON でエディタ全体が停止しないよう安全にパース
+            function safeParseLabels(str) {
+                try {
+                    var parsed = JSON.parse(str || '{}');
+                    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+                } catch (e) {
+                    return {};
+                }
+            }
+            var labelsObj = safeParseLabels(attributes.labels);
 
             function getLabel(key) { return labelsObj[key] || ''; }
             function setLabel(key, val) {
-                var obj = JSON.parse(attributes.labels || '{}');
+                var obj = safeParseLabels(attributes.labels);
                 if (val) { obj[key] = val; } else { delete obj[key]; }
                 setAttributes({ labels: JSON.stringify(obj) });
             }
