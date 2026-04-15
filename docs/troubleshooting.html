@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トラブルシューティング - Author Panel Manager マニュアル</title>
-    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
 <button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
@@ -26,262 +26,423 @@
 
 <main class="content">
     <h1>トラブルシューティング</h1>
-
-    <p>よくある問題とその解決方法をまとめています。</p>
+    <p class="lead">よくある問題の原因と対処法、そして技術仕様（DB スキーマ／REST API／nonce／フック一覧）を実装ベースで詳細にまとめています。</p>
 
     <h2>よくある問題と解決策</h2>
 
-    <h3>著者パネルが表示されない</h3>
+    <h3>著者パネルが何も表示されない</h3>
 
-    <p>原因: ショートコードにエンティティIDが未指定、または指定したIDのエンティティが存在しない。</p>
-
-    <div class="step">
-        <div class="step-number">1</div>
-        <div class="step-body">
-            <p>ショートコードに指定したIDが正しいか確認してください。</p>
-        </div>
-    </div>
-
-    <div class="step">
-        <div class="step-number">2</div>
-        <div class="step-body">
-            <p>管理画面でエンティティが実際に存在するか確認してください。</p>
-        </div>
-    </div>
-
-    <div class="step">
-        <div class="step-number">3</div>
-        <div class="step-body">
-            <p>プラグインが有効化されているか確認してください。</p>
-        </div>
-    </div>
-
-    <h3>JSON-LDが出力されない</h3>
-
-    <p>原因: Customモードで<code>target_schema_id</code>が未指定。</p>
+    <p><strong>原因:</strong> ID 指定が空、すべて無効値、指定 ID のエンティティが存在しない、またはブロック配置後に参照先エンティティが削除されたケース。</p>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p><code>mode="custom"</code>を指定している場合は、<code>target_schema_id</code>も必ず指定してください。</p>
+            <p>管理画面の Person / Corporation / Organization タブでエンティティが存在することを確認します。ID は一覧表示の「ID」列で確認できます。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p>Standardモードの場合は、ページのソースコードで<code>application/ld+json</code>を検索し、出力を確認してください。</p>
+            <p>ショートコード指定値をチェックします。<code>parse_ids()</code> は <code>absint()</code> を適用し <code>array_filter</code> で 0 や不正値を捨てるため、<code>persons="abc"</code> や <code>persons="0"</code> は空と同じ扱いになります。正しくは整数 ID をカンマ区切りで <code>persons="1,3,5"</code>。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>Customモードの場合は、<code>&lt;head&gt;</code>内にJSON-LDが出力されているか確認してください。</p>
+            <p>Gutenberg ブロックで配置した場合、ブロックを選択して右サイドバーのエンティティチェック状態を確認してください。削除済みエンティティを参照していると空出力になります（エラー表示は出ません）。</p>
         </div>
     </div>
 
-    <h3>Gutenbergブロックでエンティティが表示されない</h3>
+    <div class="callout callout-note">
+        <div class="callout-title">全 ID が無効のときの挙動</div>
+        <p><code>KAPM_Shortcode::render()</code> は、<code>persons</code>／<code>corporations</code>／<code>organizations</code> の 3 属性がすべて空配列 (または DB 照合後に全件見つからない) になった場合、空文字 <code>''</code> を返します。ブロックの場合も同様に HTML 出力がゼロになります。</p>
+    </div>
 
-    <p>原因: REST APIの権限が不足している。</p>
+    <h3 id="custom-mode">Custom モードの JSON-LD が出力されない</h3>
+
+    <p><strong>原因:</strong> ほぼ必ず以下のいずれかです。</p>
+
+    <table>
+        <thead>
+            <tr><th style="width:40%;">原因</th><th>確認方法</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>target_schema_id</code>（ブロックでは <code>targetSchemaId</code>）が空</td>
+                <td>Custom モードでこれが空だと、Custom JSON-LD は一切出力されません（HTML パネルは出ます）。</td>
+            </tr>
+            <tr>
+                <td>ページが <code>is_singular()</code> でない</td>
+                <td><code>preparse_custom_mode()</code> はホーム／アーカイブ／検索結果／404 では動作しません。個別投稿・固定ページ・個別 CPT でのみ出力されます。</td>
+            </tr>
+            <tr>
+                <td>他プラグインのスキーマ <code>@id</code> と不一致</td>
+                <td>Yoast SEO 等が出している <code>@id</code>（<code>https://example.com/post/#article</code> など）を完全一致でコピーする必要があります。クエリ文字列の有無、末尾スラッシュの有無も区別されます。</td>
+            </tr>
+            <tr>
+                <td>ブラウザ（AMP／キャッシュ系）が <code>&lt;head&gt;</code> を書き換え</td>
+                <td>ページ HTML のソースを直接確認してください（ブラウザ DevTools の Elements ではなく「ページのソースを表示」）。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">出力先の確認方法</div>
+        <p>Custom モードの JSON-LD は <code>&lt;head&gt;</code> 内に <code>wp_head</code> の priority 99 で出力されます。ページソースで <code>&lt;!-- Kashiwazaki SEO Author Panel Manager - Custom Mode JSON-LD --&gt;</code> というコメントを検索すると、本プラグインが出力した JSON-LD 部分を特定できます。Standard モード側のコメントは <code>Standard Mode JSON-LD</code> です。</p>
+    </div>
+
+    <h3 id="rest-api-issue">ブロックエディタに登録済みエンティティが表示されない</h3>
+
+    <p><strong>原因:</strong> REST API の権限不足、または nonce の有効期限切れ。</p>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p>現在のユーザーに<code>edit_posts</code>権限があるか確認してください。</p>
+            <p>ログイン中のユーザーが <code>edit_posts</code> 権限を持つか確認します（投稿者・寄稿者・編集者・管理者ロールでは持っています）。購読者ロールでは不足します。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p>エンティティが管理画面から正しく登録されているか確認してください。</p>
+            <p>ブラウザ DevTools の Network タブで <code>/wp-json/kapm/v1/persons</code> へのリクエストを確認します。401／403 が返っていれば権限/nonce の問題、空配列 <code>[]</code> が返っていればエンティティ未登録です。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>ブラウザで<code>/wp-json/kapm/v1/persons</code>にアクセスし、APIレスポンスを確認してください。</p>
+            <p>ブラウザで直接 <code>/wp-json/kapm/v1/persons</code> を開くと（ログイン中なら）JSON 配列が確認できます。ここで空であれば管理画面 Person タブからの新規追加が必要です。</p>
         </div>
     </div>
 
-    <h3>パネルのスタイルが崩れる</h3>
+    <h3>使用中の記事セクションに表示されない</h3>
 
-    <p>原因: テーマのCSSとの競合。</p>
+    <p><strong>原因:</strong> <code>KAPM_Database::get_posts_using_entity()</code> の検出対象には制約があります。以下に該当する場合、参照されていても表示されません。</p>
+
+    <ul>
+        <li><code>post_status</code> が <code>publish</code> 以外（下書き／非公開／予約投稿／ゴミ箱／revision）</li>
+        <li>ショートコード <code>[author_panel persons="..."]</code> で配置した場合（ブロック属性の JSON 形式とパターンが一致しないため検出されない）</li>
+        <li>ブロック属性の ID 文字列フォーマットが変則的な場合（通常の <code>"persons":"1,2"</code> 以外）</li>
+    </ul>
+
+    <div class="callout callout-note">
+        <div class="callout-title">公開済み・ブロック経由のみ検出</div>
+        <p>この制約はセキュリティや性能面の意図的な設計です。下書き投稿まで検索対象にすると LIKE 検索が重くなるため、<code>post_status='publish'</code> でフィルタしています。ショートコード経由の参照を検出したい場合は、本文内を <code>SELECT</code> で手動検索するか、該当箇所を Gutenberg ブロックに置き換えてください。</p>
+    </div>
+
+    <h3>パネルのスタイルが壊れる・テーマと衝突する</h3>
+
+    <p><strong>原因:</strong> テーマ側の <code>a</code> タグや <code>.wp-block-*</code> への広範な CSS リセットが、パネル内のリンクやアイコンに波及しているケース。</p>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p>ブラウザの開発者ツールで<code>.kapm-author-panel</code>のスタイルを確認してください。</p>
+            <p>ブラウザ DevTools で <code>.kapm-author-panel</code>、<code>.kapm-author-card</code>、<code>.kapm-icon</code> のスタイルを確認します。`!important` で上書きされているルールがあれば、テーマ側 CSS か別プラグインが原因です。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p>テーマのCSSで競合しているプロパティを調整してください。</p>
+            <p>一時的に Twenty Twenty-Four など WordPress 標準テーマに切り替えて再現するか確認します。標準テーマで崩れない場合、問題は使用中のテーマ CSS にあります。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p><code>panel-style.css</code>の読み込み順序が正しいか確認してください。</p>
+            <p>テーマの <code>style.css</code> や Customizer の追加 CSS で、<code>.kapm-author-panel</code> 配下のセレクタを明示的に override して調整してください。</p>
+        </div>
+    </div>
+
+    <h3>sameAs のアイコンが汎用 Web アイコンになる</h3>
+
+    <p><strong>原因:</strong> 入力された URL のホスト名が 44 ドメインのマッピングのどれにも一致していないか、URL が <code>FILTER_VALIDATE_URL</code> を通過していない。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>URL が <code>http://</code> または <code>https://</code> から始まる完全な形式であることを確認します。ホスト名のみ（<code>x.com/username</code>）は無効です。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p>マッピングに含まれるドメインは <a href="shortcode-block.html">ショートコード＆ブロックページの sameAs 44 ドメイン一覧</a>で確認できます。該当しないサービスの場合、汎用 <code>dashicons-admin-site</code>（地球儀アイコン）にフォールバックするのが仕様です。</p>
+        </div>
+    </div>
+
+    <h2 id="db-schema">技術仕様: データベーススキーマ</h2>
+
+    <p>プラグイン有効化時に <code>KAPM_Database::create_tables()</code> が <code>dbDelta()</code> で 3 テーブルを生成します。以下は <code>class-database.php</code> の実定義に基づく完全なカラム一覧です。<code>{prefix}</code> は WordPress の <code>$wpdb-&gt;prefix</code>（通常 <code>wp_</code>）に置換されます。</p>
+
+    <h3><code>{prefix}apm_persons</code> テーブル</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:22%;">カラム名</th>
+                <th style="width:28%;">型</th>
+                <th style="width:18%;">NULL 許可</th>
+                <th style="width:18%;">既定値</th>
+                <th>備考</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>id</code></td><td><code>bigint(20) unsigned</code></td><td>NOT NULL</td><td>AUTO_INCREMENT</td><td>PRIMARY KEY</td></tr>
+            <tr><td><code>name</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>表示名（必須）</td></tr>
+            <tr><td><code>name_en</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>英語名</td></tr>
+            <tr><td><code>role</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>'Author'</code></td><td>Role 文字列（自由入力）</td></tr>
+            <tr><td><code>job_title</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>肩書き</td></tr>
+            <tr><td><code>bio</code></td><td><code>text</code></td><td>NOT NULL</td><td>（空文字）</td><td>自己紹介</td></tr>
+            <tr><td><code>image_url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>プロフィール画像 URL</td></tr>
+            <tr><td><code>url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>個人サイト URL</td></tr>
+            <tr><td><code>same_as</code></td><td><code>text</code></td><td>NOT NULL</td><td>（空文字）</td><td>sameAs URL 群（1 行 1 URL）</td></tr>
+            <tr><td><code>panel_style</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'default'</code></td><td>パネルデザイン識別子</td></tr>
+            <tr><td><code>created_at</code></td><td><code>datetime</code></td><td>NOT NULL</td><td><code>CURRENT_TIMESTAMP</code></td><td>作成日時</td></tr>
+        </tbody>
+    </table>
+
+    <h3><code>{prefix}apm_corporations</code> テーブル</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:22%;">カラム名</th>
+                <th style="width:28%;">型</th>
+                <th style="width:18%;">NULL 許可</th>
+                <th style="width:18%;">既定値</th>
+                <th>備考</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>id</code></td><td><code>bigint(20) unsigned</code></td><td>NOT NULL</td><td>AUTO_INCREMENT</td><td>PRIMARY KEY</td></tr>
+            <tr><td><code>name</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>企業名（必須）</td></tr>
+            <tr><td><code>name_en</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>英語名</td></tr>
+            <tr><td><code>role</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>'Publisher'</code></td><td>Role 文字列（Person と既定値が異なる）</td></tr>
+            <tr><td><code>description</code></td><td><code>text</code></td><td>NOT NULL</td><td>（空文字）</td><td>企業説明</td></tr>
+            <tr><td><code>url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>公式サイト URL</td></tr>
+            <tr><td><code>logo_url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>ロゴ画像 URL</td></tr>
+            <tr><td><code>same_as</code></td><td><code>text</code></td><td>NOT NULL</td><td>（空文字）</td><td>sameAs URL 群</td></tr>
+            <tr><td><code>panel_style</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'default'</code></td><td>パネルデザイン識別子</td></tr>
+            <tr><td><code>created_at</code></td><td><code>datetime</code></td><td>NOT NULL</td><td><code>CURRENT_TIMESTAMP</code></td><td>作成日時</td></tr>
+        </tbody>
+    </table>
+
+    <h3><code>{prefix}apm_organizations</code> テーブル</h3>
+
+    <p>カラム構成は <code>apm_corporations</code> と完全同一（同じ 10 カラム）ですが、別テーブルに保存されます。JSON-LD では <code>Organization</code> 型、<code>apm_corporations</code> は <code>Corporation</code> 型として出力される点だけが異なります。</p>
+
+    <div class="callout callout-note">
+        <div class="callout-title">インデックス戦略</div>
+        <p>3 つのテーブルとも <strong>PRIMARY KEY (id) のみ</strong>で、name や url 等に対する追加インデックスはありません。エンティティ件数は通常数十件程度を想定しており、LIKE 検索も含め現状のテーブル設計で性能問題は発生しない想定です。大量エンティティ（数千件以上）を扱う場合は、利用パターンに応じて追加インデックスを検討してください。</p>
+    </div>
+
+    <h2 id="rest-api">技術仕様: REST API</h2>
+
+    <p>ブロックエディタのサイドバーがエンティティ一覧を取得するための読み取り専用エンドポイントです。管理画面のリストは PHP 直接呼び出しで取得するため、REST API には依存しません。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:32%;">エンドポイント</th>
+                <th style="width:10%;">メソッド</th>
+                <th style="width:18%;">権限</th>
+                <th>レスポンス</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>/wp-json/kapm/v1/persons</code></td>
+                <td>GET</td>
+                <td><code>edit_posts</code></td>
+                <td><code>{prefix}apm_persons</code> 全行を <code>id</code> 昇順で配列返却。各行は <code>id</code>, <code>name</code>, <code>name_en</code>, <code>role</code>, <code>job_title</code>, <code>bio</code>, <code>image_url</code>, <code>url</code>, <code>same_as</code>, <code>panel_style</code>, <code>created_at</code> の 11 キー。</td>
+            </tr>
+            <tr>
+                <td><code>/wp-json/kapm/v1/corporations</code></td>
+                <td>GET</td>
+                <td><code>edit_posts</code></td>
+                <td><code>{prefix}apm_corporations</code> 全行。各行は <code>id</code>, <code>name</code>, <code>name_en</code>, <code>role</code>, <code>description</code>, <code>url</code>, <code>logo_url</code>, <code>same_as</code>, <code>panel_style</code>, <code>created_at</code> の 10 キー。</td>
+            </tr>
+            <tr>
+                <td><code>/wp-json/kapm/v1/organizations</code></td>
+                <td>GET</td>
+                <td><code>edit_posts</code></td>
+                <td><code>{prefix}apm_organizations</code> 全行。Corporation と同じキー構成。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">認証方式</div>
+        <p>エディタからの呼び出しでは、リクエストに <code>X-WP-Nonce: {wp_rest nonce}</code> ヘッダーを付与することで WordPress の Cookie 認証が適用されます。nonce は <code>enqueue_block_editor_assets</code> フックで <code>wp_create_nonce('wp_rest')</code> を使って <code>kapmData.nonce</code> に注入されています。権限チェックは各ルートの <code>permission_callback</code> で <code>current_user_can('edit_posts')</code> を実行。</p>
+    </div>
+
+    <h2 id="nonce">技術仕様: nonce アクション名一覧</h2>
+
+    <p>管理画面側の保存・削除処理は、すべて nonce 検証 + capability チェックで保護されています。以下が 6 種類の nonce アクション名とフィールド名です（トラブル切り分け時に URL や POST データを確認する際に使えます）。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28%;">操作</th>
+                <th style="width:32%;">nonce アクション名</th>
+                <th>nonce 送信元</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Person 保存 (新規/更新)</td><td><code>kapm_save_person</code></td><td>POST: <code>kapm_person_nonce</code> フィールド</td></tr>
+            <tr><td>Person 削除</td><td><code>kapm_delete_person</code></td><td>GET: <code>_wpnonce</code> (URL)</td></tr>
+            <tr><td>Corporation 保存</td><td><code>kapm_save_corporation</code></td><td>POST: <code>kapm_corporation_nonce</code> フィールド</td></tr>
+            <tr><td>Corporation 削除</td><td><code>kapm_delete_corporation</code></td><td>GET: <code>_wpnonce</code> (URL)</td></tr>
+            <tr><td>Organization 保存</td><td><code>kapm_save_organization</code></td><td>POST: <code>kapm_organization_nonce</code> フィールド</td></tr>
+            <tr><td>Organization 削除</td><td><code>kapm_delete_organization</code></td><td>GET: <code>_wpnonce</code> (URL)</td></tr>
+        </tbody>
+    </table>
+
+    <p>これらに加え、管理画面全体は <code>current_user_can('manage_options')</code>（管理者権限）でガードされ、入力値は <code>sanitize_text_field()</code> / <code>sanitize_textarea_field()</code> / <code>esc_url_raw()</code> で保存時に無害化、出力時は <code>esc_html()</code> / <code>esc_attr()</code> / <code>esc_url()</code> でエスケープされます。</p>
+
+    <h2>技術仕様: 登録フック一覧</h2>
+
+    <p>本プラグインが登録している WordPress アクション／フィルタは以下のとおりです。トラブル時は <code>WP_DEBUG</code> + <code>Query Monitor</code> 等でフック実行順を確認してください。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:32%;">フック名</th>
+                <th style="width:14%;">種類</th>
+                <th style="width:14%;">優先度</th>
+                <th>コールバック（概要）</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>init</code></td><td>action</td><td>10</td><td><code>KAPM_Gutenberg::register_block</code>（ブロック登録）</td></tr>
+            <tr><td><code>enqueue_block_editor_assets</code></td><td>action</td><td>10</td><td><code>KAPM_Gutenberg::enqueue_editor_assets</code>（エディタ JS 読み込み + <code>kapmData</code> 注入）</td></tr>
+            <tr><td><code>rest_api_init</code></td><td>action</td><td>10</td><td><code>KAPM_Gutenberg::register_rest_routes</code>（3 エンドポイント登録）</td></tr>
+            <tr><td><code>add_shortcode('author_panel')</code></td><td>shortcode</td><td>-</td><td><code>KAPM_Shortcode::render</code></td></tr>
+            <tr><td><code>wp_enqueue_scripts</code></td><td>action</td><td>10</td><td><code>KAPM_Shortcode::enqueue_styles</code>（<code>panel-style.css</code> の register）</td></tr>
+            <tr><td><code>template_redirect</code></td><td>action</td><td>10</td><td><code>KAPM_Shortcode::preparse_custom_mode</code>（Custom モードの先行パース）</td></tr>
+            <tr><td><code>wp_head</code></td><td>action</td><td>99</td><td><code>KAPM_Shortcode::output_custom_json_ld</code>（Custom JSON-LD 出力）</td></tr>
+            <tr><td><code>admin_menu</code></td><td>action</td><td>10</td><td><code>KAPM_Admin::add_menus</code>（position 81）</td></tr>
+            <tr><td><code>admin_enqueue_scripts</code></td><td>action</td><td>10</td><td><code>KAPM_Admin::enqueue_styles</code>（管理画面 CSS + media.js）</td></tr>
+            <tr><td><code>plugin_action_links_{basename}</code></td><td>filter</td><td>10</td><td>プラグイン一覧に「設定」リンクを追加</td></tr>
+            <tr><td><code>register_activation_hook</code></td><td>activation</td><td>-</td><td><code>KAPM_Database::create_tables</code></td></tr>
+        </tbody>
+    </table>
+
+    <h2>技術仕様: フロントエンド資産</h2>
+
+    <table>
+        <thead>
+            <tr><th style="width:35%;">項目</th><th>内容</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>CSS ファイル</td><td><code>public/css/panel-style.css</code>（実測 <strong>4,629 バイト</strong>）</td></tr>
+            <tr><td>JavaScript</td><td>フロントエンドでは一切使用しません（エディタ / 管理画面を除く）</td></tr>
+            <tr><td>CSS の読み込み条件</td><td>ショートコード / ブロックが実際に <code>render()</code> された時のみ <code>wp_enqueue_style()</code></td></tr>
+            <tr><td>Standard JSON-LD の出力位置</td><td>ショートコードの戻り値 HTML 末尾（本文内）</td></tr>
+            <tr><td>Custom JSON-LD の出力位置</td><td><code>wp_head</code> priority 99（<code>&lt;/head&gt;</code> 直前付近）</td></tr>
+            <tr><td>依存スタイル</td><td><code>dashicons</code>（WP コア同梱）</td></tr>
+        </tbody>
+    </table>
+
+    <h2>技術仕様: アンインストール挙動</h2>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">プラグイン削除で 3 テーブルが完全削除されます</div>
+        <p>WordPress 管理画面でプラグインを「削除」すると、<code>uninstall.php</code> が自動実行され、以下の SQL が走ります。復元は不可能なので、データが必要なら事前にバックアップを取ってください。</p>
+        <pre><code>DROP TABLE IF EXISTS {prefix}apm_persons;
+DROP TABLE IF EXISTS {prefix}apm_corporations;
+DROP TABLE IF EXISTS {prefix}apm_organizations;</code></pre>
+        <p>なお、<strong>「無効化 (deactivate)」ではテーブルは削除されません</strong>。一時的にプラグインを止めたい場合は「無効化」を使ってください。</p>
+    </div>
+
+    <h2>技術仕様: 他プラグイン・テーマとの互換性</h2>
+
+    <p>本プラグインは構造化データを「追加出力」する設計で、既存の投稿データ・タクソノミー・ユーザー情報には一切触りません。既知の互換性上の注意点は以下のとおりです。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:30%;">対象</th>
+                <th>互換性上の挙動</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Yoast SEO / Rank Math / SEO SIMPLE PACK など SEO プラグイン</td>
+                <td>Custom モードは、これら SEO プラグインが <code>&lt;head&gt;</code> に出す Article / WebPage スキーマの <code>@id</code> と突合するために設計されています。Standard モードは独立ノードを追加するだけなので、他プラグインの JSON-LD と重複はしますが衝突はしません。</td>
+            </tr>
+            <tr>
+                <td>キャッシュプラグイン (WP Rocket, W3 Total Cache 等)</td>
+                <td>フロントへの出力は静的 HTML + CSS と JSON-LD のみで、既存ページデータを書き換えないため衝突リスクは小さい設計です。ただし各キャッシュ・CSS 最適化・minify・遅延読み込み・AMP 変換との相性は各プラグイン側の設定に依存するため、導入時にソース確認（<code>panel-style.css</code> が読み込まれているか、<code>&lt;head&gt;</code> 内の Custom モード JSON-LD が除外・圧縮されていないか）を推奨します。</td>
+            </tr>
+            <tr>
+                <td>AMP プラグイン</td>
+                <td>AMP の専用 <code>&lt;head&gt;</code> を別途構築する実装では、本プラグインの <code>wp_head</code> 出力が AMP 側で拾われるかはプラグインの動作次第です。本プラグインは AMP 対応を明示的にはチェックしていません。</td>
+            </tr>
+            <tr>
+                <td>Gutenberg エディタ / Classic Editor</td>
+                <td>Gutenberg ブロックとショートコードの両方を提供するため、Classic Editor 環境でもショートコード <code>[author_panel]</code> でフル機能を利用できます。</td>
+            </tr>
+            <tr>
+                <td>他のカスタム投稿タイプ</td>
+                <td>ブロック／ショートコードは投稿タイプを問わず使えます。ただし「使用中の記事」逆引き機能は <code>wp_posts</code> から検出するため、カスタムテーブルにコンテンツを保存する投稿タイプは検出対象外です。</td>
+            </tr>
+            <tr>
+                <td>マルチサイト</td>
+                <td>テーブルはサイトごとの <code>$wpdb-&gt;prefix</code>（例: <code>wp_2_apm_persons</code>）で作成され、サイト間でデータは独立します。Network 一括管理機能は提供していません。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>技術仕様: パフォーマンス計測の観点</h2>
+
+    <p>本プラグインの性能影響を確認する際は、以下の観点で計測してください。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p><strong>フロントエンド CSS の読み込み</strong>: ブラウザ DevTools の Network タブで <code>panel-style.css</code>（約 4.5KB）が読み込まれていることを確認します。パネルを挿入していないページでは読み込まれないことも確認してください。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p><strong>JSON-LD 出力サイズ</strong>: 「ページのソースを表示」で <code>application/ld+json</code> を検索し、Standard / Custom の JSON-LD サイズを確認します。エンティティ数が多い（数十件）場合でも通常は数 KB に収まります。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p><strong>DB クエリ数</strong>: <a href="https://querymonitor.com/" target="_blank" rel="noopener">Query Monitor</a> プラグインで、パネル 1 つの表示に何クエリ発生するかを確認します。<code>fetch_entities()</code> はエンティティごとに <code>SELECT</code> を発行するため、同じページで多数のエンティティを表示する場合はクエリ数が線形に増加します。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <p><strong>Core Web Vitals 実測</strong>: <a href="https://pagespeed.web.dev/" target="_blank" rel="noopener">PageSpeed Insights</a> や <a href="https://search.google.com/search-console" target="_blank" rel="noopener">Search Console の Core Web Vitals レポート</a>で、パネル挿入前後の LCP / FID / CLS / INP を比較計測できます。本プラグインはフロント JS を使わないため、通常は INP / FID への影響は観測されません。</p>
         </div>
     </div>
 
     <div class="callout callout-tip">
-        <div class="callout-title">ヒント</div>
-        <p>デフォルトテーマ（Twenty Twenty-Fourなど）に一時的に切り替えることで、テーマ固有の問題かプラグインの問題かを切り分けられます。</p>
+        <div class="callout-title">Custom モード使用時のヘッドチェック</div>
+        <p>Custom モードで他プラグインの <code>@id</code> と紐付けた場合、<a href="https://search.google.com/test/rich-results" target="_blank" rel="noopener">Google リッチリザルトテスト</a>や <a href="https://validator.schema.org/" target="_blank" rel="noopener">Schema Markup Validator</a> で、Article ノードと Person / Corporation / Organization ノードが正しく解決されているかを確認してください。</p>
     </div>
 
-    <h2>動作要件</h2>
-
+    <h2>動作要件と対応環境</h2>
     <table>
         <thead>
-            <tr>
-                <th style="width:35%;">項目</th>
-                <th>要件</th>
-            </tr>
+            <tr><th style="width:35%;">項目</th><th>要件</th></tr>
         </thead>
         <tbody>
-            <tr>
-                <td>WordPress</td>
-                <td>6.0以上</td>
-            </tr>
-            <tr>
-                <td>PHP</td>
-                <td>8.0以上</td>
-            </tr>
-            <tr>
-                <td>対応ブラウザ</td>
-                <td>Chrome / Firefox / Safari / Edge 最新版</td>
-            </tr>
-            <tr>
-                <td>管理権限</td>
-                <td>manage_options</td>
-            </tr>
-            <tr>
-                <td>ブロック権限</td>
-                <td>edit_posts</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h2>技術仕様</h2>
-
-    <h3>データ保存</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width:35%;">項目</th>
-                <th>内容</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>カスタムテーブル</td>
-                <td>3テーブル（prefix_apm_persons / prefix_apm_corporations / prefix_apm_organizations）</td>
-            </tr>
-            <tr>
-                <td>wp_options</td>
-                <td>未使用</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>フロントエンド</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width:35%;">項目</th>
-                <th>内容</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>CSS</td>
-                <td>panel-style.css（約4KB）</td>
-            </tr>
-            <tr>
-                <td>JavaScript</td>
-                <td>なし</td>
-            </tr>
-            <tr>
-                <td>JSON-LD（Standard）</td>
-                <td>パネル直後に出力</td>
-            </tr>
-            <tr>
-                <td>JSON-LD（Custom）</td>
-                <td>wp_head（priority 99）で出力</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>REST API</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width:35%;">エンドポイント</th>
-                <th>メソッド</th>
-                <th>権限</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>/kapm/v1/persons</td>
-                <td>GET</td>
-                <td>edit_posts</td>
-            </tr>
-            <tr>
-                <td>/kapm/v1/corporations</td>
-                <td>GET</td>
-                <td>edit_posts</td>
-            </tr>
-            <tr>
-                <td>/kapm/v1/organizations</td>
-                <td>GET</td>
-                <td>edit_posts</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>セキュリティ</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width:35%;">対策</th>
-                <th>内容</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>nonce検証</td>
-                <td>すべての管理画面リクエストでnonce検証を実施</td>
-            </tr>
-            <tr>
-                <td>権限チェック</td>
-                <td>manage_options / edit_postsによる権限制御</td>
-            </tr>
-            <tr>
-                <td>入力サニタイズ</td>
-                <td>sanitize_text_field等による入力値の無害化</td>
-            </tr>
-            <tr>
-                <td>出力エスケープ</td>
-                <td>esc_html / esc_attr / esc_url等による出力エスケープ</td>
-            </tr>
+            <tr><td>WordPress</td><td>6.0 以上（<code>parse_blocks()</code>、<code>register_block_type()</code> が安定版である必要）</td></tr>
+            <tr><td>PHP</td><td>8.0 以上（コード内で <code>match</code> 式、<code>int|false</code> Union 戻り値型を使用）</td></tr>
+            <tr><td>対応ブラウザ</td><td>Chrome / Firefox / Safari / Edge の各最新版</td></tr>
+            <tr><td>管理画面権限</td><td><code>manage_options</code>（通常は管理者ロール）</td></tr>
+            <tr><td>ブロックエディタからの REST 参照権限</td><td><code>edit_posts</code>（投稿者以上）</td></tr>
+            <tr><td>必須 WP 標準機能</td><td><code>wp_enqueue_media()</code>（メディアライブラリ連携）、<code>dashicons</code>（sameAs アイコン）、<code>parse_blocks()</code>（Custom モード検出）</td></tr>
         </tbody>
     </table>
 
     <figure class="infographic">
         <img src="images/infographics/architecture.png" alt="Kashiwazaki SEO Author Panel Manager のアーキテクチャ">
-        <figcaption>Kashiwazaki SEO Author Panel Manager のアーキテクチャ</figcaption>
+        <figcaption>プラグインの内部アーキテクチャ（DB / Admin / Shortcode / Gutenberg）</figcaption>
     </figure>
 
     <nav class="page-nav">
@@ -296,6 +457,6 @@
 </main>
 
 <div class="lightbox"></div>
-<script src="js/manual.js?v=1"></script>
+<script src="js/manual.js?v=2"></script>
 </body>
 </html>

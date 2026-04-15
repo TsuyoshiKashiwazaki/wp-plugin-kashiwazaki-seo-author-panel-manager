@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ショートコード＆ブロック - Author Panel Manager マニュアル</title>
-    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
 <button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
@@ -26,179 +26,439 @@
 
 <main class="content">
     <h1>ショートコード＆ブロック</h1>
+    <p class="lead">記事本文に著者パネルを挿入する 2 つの方法（Gutenberg ブロックと <code>[author_panel]</code> ショートコード）の全属性・JSON-LD 出力・ネストブロック対応・REST API 経由のエンティティ取得までを解説します。</p>
 
-    <p>ショートコードとGutenbergブロックを使って、投稿やページに著者パネルを挿入する方法を解説します。</p>
+    <p>ブロックとショートコードは内部的に同じレンダラー（<code>KAPM_Shortcode::render()</code>）を共有しており、どちらで挿入しても HTML 出力と JSON-LD 出力は同一です。ブロックはキャメルケース属性（<code>targetSchemaId</code>）、ショートコードはスネークケース属性（<code>target_schema_id</code>）という表記差があるだけで、<code>KAPM_Gutenberg::render_block()</code> が内部で属性名を変換してから共通レンダラーへ渡しています。</p>
 
-    <h2>ショートコードの使い方</h2>
+    <h2>Gutenberg ブロック</h2>
 
-    <p>基本構文は以下のとおりです。</p>
-
-    <pre><code>[author_panel persons="1,2" corporations="1" organizations="1"]</code></pre>
-
-    <h3>ショートコード属性一覧</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width:35%;">属性</th>
-                <th>値</th>
-                <th>説明</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>persons</td>
-                <td>カンマ区切りID</td>
-                <td>表示するPersonエンティティのIDを指定</td>
-            </tr>
-            <tr>
-                <td>corporations</td>
-                <td>カンマ区切りID</td>
-                <td>表示するCorporationエンティティのIDを指定</td>
-            </tr>
-            <tr>
-                <td>organizations</td>
-                <td>カンマ区切りID</td>
-                <td>表示するOrganizationエンティティのIDを指定</td>
-            </tr>
-            <tr>
-                <td>mode</td>
-                <td>standard / custom</td>
-                <td>JSON-LD出力モード（デフォルト: standard）</td>
-            </tr>
-            <tr>
-                <td>target_schema_id</td>
-                <td>文字列</td>
-                <td>Customモード時に参照する既存スキーマの@id</td>
-            </tr>
-            <tr>
-                <td>labels</td>
-                <td>JSON</td>
-                <td>パネルに表示するラベルのカスタマイズ</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div class="callout callout-tip">
-        <div class="callout-title">ヒント</div>
-        <p>エンティティIDは管理画面の一覧で確認できます。</p>
-    </div>
-
-    <h2>Gutenbergブロックの使い方</h2>
+    <p>ブロック名: <code>kapm/author-panel</code>（カテゴリ <code>widgets</code>、アイコン <code>id-alt</code>）。ブロック追加メニューで「著者」「author」「Kashiwazaki」などで検索できます。</p>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <h3>ブロック追加ボタンをクリック</h3>
-            <p>投稿編集画面で「+」ボタンをクリックし、ブロック追加メニューを開きます。</p>
+            <p>投稿・固定ページの編集画面で <strong>+（ブロック追加）</strong> ボタンをクリックし、検索欄に <code>author</code> や <code>kashiwazaki</code> を入力します。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <h3>ブロックを検索して挿入</h3>
-            <p>検索欄に「Author Panel」と入力し、表示されたブロックをクリックして挿入します。</p>
+            <p><strong>Kashiwazaki SEO Author Panel Manager</strong> ブロックを選択して挿入します。挿入直後は「エンティティ未選択」のプレースホルダが表示されます。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <h3>サイドバーでエンティティを選択</h3>
-            <p>右側のサイドバーから、表示したいPerson・Corporation・Organizationを選択します。</p>
+            <p>右サイドバー（InspectorControls）の <strong>Person</strong> / <strong>Corporation</strong> / <strong>Organization</strong> パネルから、表示したいエンティティをチェックボックスで選択します。チェック直後に「表示ラベル」入力欄が現れます。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">4</div>
         <div class="step-body">
-            <h3>モード・ラベルを設定</h3>
-            <p>JSON-LDの出力モードやパネルのラベルをサイドバーで設定します。</p>
+            <p><strong>出力モード</strong> パネルで Standard / Custom を選びます。Custom 選択時は「紐付け先スキーマの @id」入力欄が追加表示されます。</p>
         </div>
     </div>
 
     <div class="screenshot">
-        <img src="images/screenshots/06-block-editor.png" class="lightbox-trigger">
+        <img src="images/screenshots/06-block-editor.png" alt="ブロックエディタのサイドバー" class="lightbox-trigger">
     </div>
 
-    <div class="callout callout-note">
-        <div class="callout-title">メモ</div>
-        <p>サイドバーから各エンティティの管理画面へ直接リンクできます。</p>
-    </div>
+    <h3>ブロック属性リファレンス（全 6 属性）</h3>
 
-    <h2>JSON-LDモード</h2>
-
-    <h3>Standardモード</h3>
-    <p>デフォルトのモードです。著者パネルの直後にJSON-LDを出力します。@graphにエンティティの情報が記述されます。</p>
-
-    <h3>Customモード</h3>
-    <p>既存スキーマの@idを<code>target_schema_id</code>で指定し、エンティティを紐づけます。JSON-LDは<code>wp_head</code>で出力されます。</p>
-
-    <p>使用例:</p>
-    <pre><code>[author_panel persons="1" corporations="1" mode="custom" target_schema_id="#article-schema"]</code></pre>
-
-    <div class="callout callout-warning">
-        <div class="callout-title">注意</div>
-        <p><code>target_schema_id</code>は既存スキーマの@idと正確に一致する必要があります。</p>
-    </div>
-
-    <h2>フロントエンド表示例</h2>
-
-    <div class="screenshot">
-        <img src="images/screenshots/05-frontend-panel.png" class="lightbox-trigger">
-    </div>
-
-    <p>Person・Corporation・Organizationのカードがフレックスボックスで横並びに表示されます。各カードには名前・説明・画像・sameAsリンクが含まれます。</p>
-
-    <h3>sameAsアイコン対応サービス</h3>
+    <p><code>includes/class-gutenberg.php</code> の <code>register_block_type()</code> で定義されている 6 個の属性です。すべて <code>string</code> 型で、デフォルト値は空文字またはそれに準じる値になっています。</p>
 
     <table>
         <thead>
             <tr>
-                <th style="width:35%;">サービス</th>
-                <th>説明</th>
+                <th style="width:20%;">属性名（キャメル）</th>
+                <th style="width:16%;">型</th>
+                <th style="width:18%;">既定値</th>
+                <th>内容</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Twitter</td>
-                <td>Twitterプロフィールへのリンクアイコン</td>
+                <td><code>persons</code></td>
+                <td><code>string</code></td>
+                <td><code>''</code></td>
+                <td>表示する Person エンティティ ID のカンマ区切りリスト（例: <code>"1,3,5"</code>）。</td>
             </tr>
             <tr>
-                <td>Facebook</td>
-                <td>Facebookプロフィールへのリンクアイコン</td>
+                <td><code>corporations</code></td>
+                <td><code>string</code></td>
+                <td><code>''</code></td>
+                <td>表示する Corporation エンティティ ID のカンマ区切りリスト。</td>
             </tr>
             <tr>
-                <td>GitHub</td>
-                <td>GitHubプロフィールへのリンクアイコン</td>
+                <td><code>organizations</code></td>
+                <td><code>string</code></td>
+                <td><code>''</code></td>
+                <td>表示する Organization エンティティ ID のカンマ区切りリスト。</td>
             </tr>
             <tr>
-                <td>LinkedIn</td>
-                <td>LinkedInプロフィールへのリンクアイコン</td>
+                <td><code>mode</code></td>
+                <td><code>string</code></td>
+                <td><code>'standard'</code></td>
+                <td>JSON-LD 出力モード。<code>standard</code>（独立 <code>@graph</code> を本文内に出力）または <code>custom</code>（既存スキーマの <code>@id</code> に紐付けて <code>wp_head</code> に出力）。</td>
             </tr>
             <tr>
-                <td>Instagram</td>
-                <td>Instagramプロフィールへのリンクアイコン</td>
+                <td><code>targetSchemaId</code></td>
+                <td><code>string</code></td>
+                <td><code>''</code></td>
+                <td>Custom モードで紐付け先スキーマの <code>@id</code> を指定します。空のまま Custom モードを選んだ場合、Custom JSON-LD は出力されません（HTML パネルのみ表示）。</td>
             </tr>
             <tr>
-                <td>YouTube</td>
-                <td>YouTubeチャンネルへのリンクアイコン</td>
-            </tr>
-            <tr>
-                <td>Amazon</td>
-                <td>Amazon著者ページへのリンクアイコン</td>
-            </tr>
-            <tr>
-                <td>その他</td>
-                <td>汎用リンクアイコンで表示</td>
+                <td><code>labels</code></td>
+                <td><code>string</code></td>
+                <td><code>'{}'</code></td>
+                <td>エンティティごとの表示ラベル（「執筆者」「監修者」等）を格納した JSON 文字列。キー形式は <code>person-{id}</code> / <code>corp-{id}</code> / <code>org-{id}</code>。JSON として不正な場合は空オブジェクトとして扱われます。</td>
             </tr>
         </tbody>
     </table>
 
+    <h3>サイドバー UI の 4 パネル構成</h3>
+
+    <p><code>assets/js/gutenberg-sidebar.js</code> の InspectorControls では、以下の 4 つの PanelBody が配置されます。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28%;">パネル名</th>
+                <th>主な UI 要素</th>
+                <th style="width:26%;">操作対象の属性</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Person</td>
+                <td>登録済み Person の一覧をチェックボックスで表示。チェック中のエンティティごとに「表示ラベル」TextControl が展開（placeholder: 「例: 執筆者、監修者など」）。下部に「Person管理を開く」リンク。</td>
+                <td><code>persons</code>, <code>labels</code>（<code>person-{id}</code> キー）</td>
+            </tr>
+            <tr>
+                <td>Corporation</td>
+                <td>登録済み Corporation のチェックボックス一覧とラベル入力欄（placeholder: 「例: 運営会社、スポンサーなど」）。</td>
+                <td><code>corporations</code>, <code>labels</code>（<code>corp-{id}</code> キー）</td>
+            </tr>
+            <tr>
+                <td>Organization</td>
+                <td>登録済み Organization のチェックボックス一覧とラベル入力欄（placeholder: 「例: 運営メディア、発行元など」）。</td>
+                <td><code>organizations</code>, <code>labels</code>（<code>org-{id}</code> キー）</td>
+            </tr>
+            <tr>
+                <td>出力モード</td>
+                <td><code>RadioControl</code> で Standard / Custom の 2 択。Custom 選択時のみ <code>TextControl</code>「紐付け先スキーマの @id」が表示されます（placeholder: <code>https://example.com/#article</code>）。</td>
+                <td><code>mode</code>, <code>targetSchemaId</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">REST API 経由のエンティティ取得</div>
+        <p>サイドバーに並ぶチェックボックス一覧は、編集画面初期化時に <code>fetch()</code> で <code>/wp-json/kapm/v1/persons</code>／<code>corporations</code>／<code>organizations</code> の 3 エンドポイントから全件取得しています。<code>X-WP-Nonce</code> ヘッダーに <code>kapmData.nonce</code>（wp_rest nonce）を付与し、権限は <code>current_user_can('edit_posts')</code>。詳細は <a href="troubleshooting.html#rest-api">REST API 仕様</a>を参照してください。</p>
+    </div>
+
+    <h3>ブロックのプレビュー表示</h3>
+
+    <p>エンティティが 1 件以上選択されている場合、ブロック本体にプレビュー枠が表示されます。Person は 👤、Corporation は 🏢、Organization は 🏛 のアイコン付きで登録名が並び、下部に現在の <code>Mode</code> と（Custom 時は）<code>Target</code> が表示されます。選択ゼロの場合は WordPress 標準の <code>Placeholder</code> コンポーネントで「右サイドバーから選択してください」と表示されます。</p>
+
+    <h2>ショートコード <code>[author_panel]</code></h2>
+
+    <p>クラシックエディタで記事本文にショートコードを書く場合や、ウィジェット・テーマテンプレートから <code>do_shortcode()</code> で呼び出す場合はショートコードを利用します。</p>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">Custom モードは投稿本文 (post_content) のみが対象</div>
+        <p><code>preparse_custom_mode()</code> は <code>template_redirect</code> で現在投稿の <code>$post->post_content</code> を直接パースして Custom モードを検出します。そのため、<strong>ウィジェットエリア・テーマテンプレート (header.php / footer.php / sidebar.php 等)・ブロックパターン・フッター CPT からの <code>do_shortcode()</code> 呼び出しは Custom モードの JSON-LD には含まれません</strong>（HTML パネル自体は正常に出力されます）。テンプレートやウィジェットで著者パネルを出したい場合は、Standard モードのみ利用可能と考えてください。</p>
+    </div>
+
+    <p>最小構文:</p>
+    <pre><code>[author_panel persons="1,2" corporations="3"]</code></pre>
+
+    <p>Custom モードで Yoast SEO などが出力した記事スキーマに紐付ける例:</p>
+    <pre><code>[author_panel persons="1" corporations="3" mode="custom" target_schema_id="https://example.com/post/#article"]</code></pre>
+
+    <h3>ショートコード属性リファレンス（全 6 属性）</h3>
+
+    <p>ブロックと完全対応していますが、属性名がスネークケースに変わる点と <code>target_schema_id</code> のアンダースコア表記に注意してください。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:22%;">属性名</th>
+                <th style="width:26%;">既定値</th>
+                <th>内容・注意点</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>persons</code></td><td><code>''</code></td><td>Person ID のカンマ区切りリスト。<code>parse_ids()</code> で <code>absint()</code> + <code>array_filter</code> 処理されるため、0 や不正値（文字列、負数）は自動的に捨てられます。</td></tr>
+            <tr><td><code>corporations</code></td><td><code>''</code></td><td>Corporation ID のカンマ区切りリスト。処理ルールは <code>persons</code> と同じ。</td></tr>
+            <tr><td><code>organizations</code></td><td><code>''</code></td><td>Organization ID のカンマ区切りリスト。処理ルールは同上。</td></tr>
+            <tr><td><code>mode</code></td><td><code>'standard'</code></td><td>JSON-LD 出力モード。<code>standard</code> または <code>custom</code>。それ以外の値は Standard として扱われます。</td></tr>
+            <tr><td><code>target_schema_id</code></td><td><code>''</code></td><td>Custom モードでの紐付け先 <code>@id</code>。<strong>Custom モードでこれが空だと Custom 側の JSON-LD は一切出力されません</strong>（HTML パネルのみ表示）。</td></tr>
+            <tr><td><code>labels</code></td><td><code>'{}'</code></td><td>表示ラベルの JSON 文字列。<code>json_decode()</code> が失敗した場合は空配列扱いになり、ラベルは表示されません。</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">すべての ID が空 or 無効のとき</div>
+        <p><code>persons</code> / <code>corporations</code> / <code>organizations</code> のすべてが空文字、または <code>parse_ids()</code> 後にすべて空配列になった場合、ショートコードは空文字 <code>''</code> を返します（HTML にも JSON-LD にも何も出力されません）。指定した ID のエンティティが DB から見つからなかった場合も同様です。</p>
+    </div>
+
+    <h2>JSON-LD 出力（Standard モード）</h2>
+
+    <p>Standard モードでは、HTML パネルの直後に <code>&lt;script type="application/ld+json"&gt;</code> で独立した JSON-LD が埋め込まれます。出力される構造は <code>@context</code> + <code>@graph</code> で、<code>@graph</code> に Person / Corporation / Organization の各ノードが並びます。</p>
+
+    <p>例: Person 1 人 + Corporation 1 社を挿入した場合の出力（整形済み）:</p>
+
+    <pre><code>&lt;!-- Kashiwazaki SEO Author Panel Manager - Standard Mode JSON-LD --&gt;
+&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://example.com/profile/#person-1",
+      "name": "柏崎 剛",
+      "alternateName": "Tsuyoshi Kashiwazaki",
+      "jobTitle": "SEO エンジニア",
+      "description": "〜〜〜",
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://example.com/avatar.jpg"
+      },
+      "url": "https://example.com/profile/",
+      "sameAs": [
+        "https://x.com/username",
+        "https://github.com/username"
+      ]
+    },
+    {
+      "@type": "Corporation",
+      "@id": "https://example.com/company/#corporation-3",
+      "name": "株式会社サンプル",
+      "alternateName": "Sample Corporation",
+      "description": "〜〜〜",
+      "url": "https://example.com/company/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://example.com/logo.png"
+      },
+      "sameAs": ["https://x.com/sample_corp"]
+    }
+  ]
+}
+&lt;/script&gt;
+&lt;!-- / Kashiwazaki SEO Author Panel Manager --&gt;</code></pre>
+
+    <div class="callout callout-note">
+        <div class="callout-title">@id のフォールバック</div>
+        <p>各エンティティの <code>@id</code> は <code>{エンティティの url}#person-{id}</code> / <code>#corporation-{id}</code> / <code>#organization-{id}</code> の形で生成されます。エンティティの <code>url</code> が空の場合、ベース URL は <code>home_url('/')</code>（サイトのホーム URL）にフォールバックします。</p>
+    </div>
+
+    <div class="callout callout-note">
+        <div class="callout-title">省略プロパティ</div>
+        <p>未入力のフィールドに対応する JSON プロパティは出力されません（<code>''</code> や <code>null</code> ではなくキー自体が省略されます）。例えば Person で英語名が未入力なら <code>alternateName</code> は存在せず、sameAs が 1 件も有効 URL を含まなければ <code>sameAs</code> プロパティそのものが出ません。</p>
+    </div>
+
+    <h2>JSON-LD 出力（Custom モード）</h2>
+
+    <p>Custom モードは、他プラグイン（Yoast SEO、Rank Math、SEO SIMPLE PACK 等）が <code>&lt;head&gt;</code> 内に出力している Article / NewsArticle / WebPage などの既存スキーマへ、本プラグインのエンティティを <strong>プロパティとして紐付ける</strong>ための出力方式です。</p>
+
+    <h3>Custom モードの動作フロー</h3>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p><strong>template_redirect</strong> で <code>preparse_custom_mode()</code> が走り、<strong><code>is_singular()</code> が真のときのみ</strong>（個別投稿・固定ページ・個別カスタム投稿のみ）、現在の投稿の <code>post_content</code> をパースします。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p><code>parse_blocks()</code> でブロック配列を取得し、<code>scan_blocks_for_custom()</code> が<strong>再帰的に</strong>走査。<code>kapm/author-panel</code> ブロックを検出するたびに、<code>mode === 'custom'</code> かつ <code>targetSchemaId</code> が非空であれば対象としてメモリに保持します。Group / Columns / Row など innerBlocks を持つコンテナ内のネストブロックも検出されます。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <p>同じ <code>preparse_custom_mode()</code> がショートコード形式 <code>[author_panel ... mode="custom"]</code> を <code>get_shortcode_regex()</code> で検出し、<code>shortcode_parse_atts()</code> でパースして同様にメモリに保持します。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <p><strong>wp_head</strong>（優先度 99、<code>&lt;/head&gt;</code> 直前に近い）で <code>output_custom_json_ld()</code> が、収集した全 Custom データを 1 つずつ <code>&lt;script type="application/ld+json"&gt;</code> として出力します。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">アーカイブ・ホームでは Custom モードは動作しません</div>
+        <p><code>preparse_custom_mode()</code> は <code>is_singular()</code> でガードされているため、カテゴリーアーカイブ・タグアーカイブ・検索結果・ホームページでは Custom 側の JSON-LD は出力されません。アーカイブ系で著者パネルを出したい場合は Standard モードを使用してください。HTML パネル自体（ショートコード本体の出力）はこの制約の対象外です。</p>
+    </div>
+
+    <h3>Custom モードの JSON-LD 出力例</h3>
+
+    <p>例: Yoast SEO が Article を <code>@id: "https://example.com/post-slug/#article"</code> で出力しているページに、Person 1（role=Author）と Corporation 3（role=Publisher）を紐付けた場合の Custom 側出力:</p>
+
+    <pre><code>&lt;!-- Kashiwazaki SEO Author Panel Manager - Custom Mode JSON-LD --&gt;
+&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://example.com/profile/#person-1",
+      "name": "柏崎 剛",
+      "url": "https://example.com/profile/",
+      "sameAs": ["https://x.com/username"]
+    },
+    {
+      "@type": "Corporation",
+      "@id": "https://example.com/company/#corporation-3",
+      "name": "株式会社サンプル",
+      "url": "https://example.com/company/"
+    },
+    {
+      "@id": "https://example.com/post-slug/#article",
+      "author":    { "@id": "https://example.com/profile/#person-1" },
+      "publisher": { "@id": "https://example.com/company/#corporation-3" }
+    }
+  ]
+}
+&lt;/script&gt;
+&lt;!-- / Kashiwazaki SEO Author Panel Manager --&gt;</code></pre>
+
+    <p>最後のノードは <code>@id</code> だけの「参照ノード」で、ブロック側で指定した <code>target_schema_id</code> がそのまま入ります。このノードに <code>author</code> / <code>publisher</code> などのプロパティが <code>@id</code> 参照として追加され、他プラグインの Article ノードと同一 <code>@id</code> であれば Google 等のパーサ側でマージ解釈されます。</p>
+
+    <h3>role_to_property() による分岐</h3>
+
+    <p>上記例の <code>author</code> / <code>publisher</code> プロパティ名は、各エンティティの <code>role</code> フィールド値を <code>role_to_property()</code> で変換した結果です。全 9 分岐のマッピングは <a href="entity-management.html">エンティティ管理ページ</a>の Role 変換表を参照してください。</p>
+
+    <p>同じ role に複数エンティティが紐付いた場合（例: 共著で Person が 2 人、どちらも Author）、2 人目以降は配列形式にまとめられ、<code>"author": [ {"@id": "..."}, {"@id": "..."} ]</code> の形で出力されます。</p>
+
+    <div class="callout callout-note">
+        <div class="callout-title">Standard と Custom は併用可能</div>
+        <p>1 記事内で複数のブロック／ショートコードを挿入し、一方を Standard、もう一方を Custom にすることもできます。Standard は本文内、Custom は <code>&lt;head&gt;</code> 内と出力先が分かれているため衝突しません。</p>
+    </div>
+
+    <h2>フロントエンド HTML 出力</h2>
+
+    <div class="screenshot">
+        <img src="images/screenshots/05-frontend-panel.png" alt="フロントエンド著者パネル表示" class="lightbox-trigger">
+    </div>
+
+    <p>HTML はルート要素 <code>.kapm-author-panel</code> の中に、エンティティごとのカード <code>.kapm-author-card</code> を flex で並べる構造です。各カードにはエンティティ種別（<code>.kapm-person</code> / <code>.kapm-corporation</code> / <code>.kapm-organization</code>）と <code>panel_style</code>（<code>.kapm-style-default</code> ほか）の 2 つのクラスが付きます。</p>
+
+    <p>Person のカード内では、名前が URL にリンクされる際に <strong><code>rel="author"</code></strong> 属性が付きます（Corporation / Organization のリンクには付きません）。これは Person 特有の扱いで、検索エンジンに対して「この記事の著者リンク」であることを伝える役割があります。</p>
+
+    <div class="callout callout-note">
+        <div class="callout-title">CSS の読み込み条件</div>
+        <p>フロントエンド CSS（<code>public/css/panel-style.css</code>、実測 <strong>4,629 バイト</strong>）は、ショートコードが <code>render()</code> される時点で <code>wp_enqueue_style()</code> されます。著者パネルが挿入されていないページでは CSS は読み込まれません。フロントエンド側で独自 JavaScript は一切使用しません（Core Web Vitals に追加の JS 評価コストを発生させません）。</p>
+    </div>
+
+    <h2>sameAs アイコンマッピング全 44 ドメイン</h2>
+
+    <p>エンティティの sameAs URL は、フロント側で Dashicons アイコン付きリンクとして表示されます。URL のホスト名から自動的にサービスを判定し、以下 44 パターンのいずれかにマッチすれば対応アイコン、マッチしなければ <code>dashicons-admin-site</code>（汎用 Web サイトアイコン）が使われます。</p>
+
+    <p>マッチロジック: <code>wp_parse_url($url, PHP_URL_HOST)</code> で取得したホスト名から <code>www.</code> を取り除き、マップキーと完全一致するか、末尾ドット付きキー（例: <code>amazon.</code>）で前方一致するかを判定します。</p>
+
+    <h3>SNS・コミュニケーション系</h3>
+    <table>
+        <thead>
+            <tr><th style="width:32%;">ドメインパターン</th><th style="width:28%;">Dashicons クラス</th><th>サービス</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>x.com</code></td><td><code>dashicons-twitter-alt</code></td><td>X (旧 Twitter)</td></tr>
+            <tr><td><code>twitter.com</code></td><td><code>dashicons-twitter-alt</code></td><td>Twitter (旧ドメイン)</td></tr>
+            <tr><td><code>facebook.com</code></td><td><code>dashicons-facebook-alt</code></td><td>Facebook</td></tr>
+            <tr><td><code>instagram.com</code></td><td><code>dashicons-camera</code></td><td>Instagram</td></tr>
+            <tr><td><code>linkedin.com</code></td><td><code>dashicons-businessperson</code></td><td>LinkedIn</td></tr>
+            <tr><td><code>threads.net</code></td><td><code>dashicons-format-status</code></td><td>Threads</td></tr>
+            <tr><td><code>bsky.app</code></td><td><code>dashicons-share</code></td><td>Bluesky</td></tr>
+            <tr><td><code>mastodon.</code>（前方一致）</td><td><code>dashicons-share</code></td><td>Mastodon (インスタンス全般)</td></tr>
+            <tr><td><code>tumblr.com</code></td><td><code>dashicons-share</code></td><td>Tumblr</td></tr>
+            <tr><td><code>reddit.com</code></td><td><code>dashicons-format-chat</code></td><td>Reddit</td></tr>
+            <tr><td><code>pinterest.</code>（前方一致）</td><td><code>dashicons-admin-post</code></td><td>Pinterest (地域 TLD 全般)</td></tr>
+            <tr><td><code>tiktok.com</code></td><td><code>dashicons-format-video</code></td><td>TikTok</td></tr>
+            <tr><td><code>telegram.org</code></td><td><code>dashicons-email-alt</code></td><td>Telegram</td></tr>
+            <tr><td><code>t.me</code></td><td><code>dashicons-email-alt</code></td><td>Telegram 短縮</td></tr>
+            <tr><td><code>whatsapp.com</code></td><td><code>dashicons-phone</code></td><td>WhatsApp</td></tr>
+            <tr><td><code>wa.me</code></td><td><code>dashicons-phone</code></td><td>WhatsApp 短縮</td></tr>
+        </tbody>
+    </table>
+
+    <h3>動画・音声・画像系</h3>
+    <table>
+        <thead>
+            <tr><th style="width:32%;">ドメインパターン</th><th style="width:28%;">Dashicons クラス</th><th>サービス</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>youtube.com</code></td><td><code>dashicons-video-alt3</code></td><td>YouTube</td></tr>
+            <tr><td><code>youtu.be</code></td><td><code>dashicons-video-alt3</code></td><td>YouTube 短縮</td></tr>
+            <tr><td><code>vimeo.com</code></td><td><code>dashicons-video-alt2</code></td><td>Vimeo</td></tr>
+            <tr><td><code>twitch.tv</code></td><td><code>dashicons-video-alt</code></td><td>Twitch</td></tr>
+            <tr><td><code>spotify.com</code></td><td><code>dashicons-format-audio</code></td><td>Spotify</td></tr>
+            <tr><td><code>soundcloud.com</code></td><td><code>dashicons-format-audio</code></td><td>SoundCloud</td></tr>
+            <tr><td><code>flickr.com</code></td><td><code>dashicons-camera</code></td><td>Flickr</td></tr>
+        </tbody>
+    </table>
+
+    <h3>開発者・技術系</h3>
+    <table>
+        <thead>
+            <tr><th style="width:32%;">ドメインパターン</th><th style="width:28%;">Dashicons クラス</th><th>サービス</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>github.com</code></td><td><code>dashicons-editor-code</code></td><td>GitHub</td></tr>
+            <tr><td><code>gitlab.com</code></td><td><code>dashicons-editor-code</code></td><td>GitLab</td></tr>
+            <tr><td><code>bitbucket.org</code></td><td><code>dashicons-editor-code</code></td><td>Bitbucket</td></tr>
+            <tr><td><code>stackoverflow.com</code></td><td><code>dashicons-editor-help</code></td><td>Stack Overflow</td></tr>
+            <tr><td><code>qiita.com</code></td><td><code>dashicons-lightbulb</code></td><td>Qiita</td></tr>
+            <tr><td><code>zenn.dev</code></td><td><code>dashicons-lightbulb</code></td><td>Zenn</td></tr>
+        </tbody>
+    </table>
+
+    <h3>学術・研究系（E-E-A-T の文脈で重要）</h3>
+    <table>
+        <thead>
+            <tr><th style="width:32%;">ドメインパターン</th><th style="width:28%;">Dashicons クラス</th><th>サービス</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>scholar.google.</code>（前方一致）</td><td><code>dashicons-welcome-learn-more</code></td><td>Google Scholar (TLD 全般)</td></tr>
+            <tr><td><code>researchgate.net</code></td><td><code>dashicons-welcome-learn-more</code></td><td>ResearchGate</td></tr>
+            <tr><td><code>orcid.org</code></td><td><code>dashicons-welcome-learn-more</code></td><td>ORCID</td></tr>
+            <tr><td><code>osf.io</code></td><td><code>dashicons-welcome-learn-more</code></td><td>OSF (Open Science Framework)</td></tr>
+            <tr><td><code>ideas.repec.org</code></td><td><code>dashicons-welcome-learn-more</code></td><td>RePEc (経済学)</td></tr>
+        </tbody>
+    </table>
+
+    <h3>ブログ・コンテンツ・その他</h3>
+    <table>
+        <thead>
+            <tr><th style="width:32%;">ドメインパターン</th><th style="width:28%;">Dashicons クラス</th><th>サービス</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>medium.com</code></td><td><code>dashicons-edit</code></td><td>Medium</td></tr>
+            <tr><td><code>note.com</code></td><td><code>dashicons-welcome-write-blog</code></td><td>note</td></tr>
+            <tr><td><code>note.mu</code></td><td><code>dashicons-welcome-write-blog</code></td><td>note (旧ドメイン)</td></tr>
+            <tr><td><code>wordpress.org</code></td><td><code>dashicons-wordpress</code></td><td>WordPress.org</td></tr>
+            <tr><td><code>wordpress.com</code></td><td><code>dashicons-wordpress</code></td><td>WordPress.com</td></tr>
+            <tr><td><code>wikipedia.org</code></td><td><code>dashicons-book</code></td><td>Wikipedia</td></tr>
+            <tr><td><code>goodreads.com</code></td><td><code>dashicons-book-alt</code></td><td>Goodreads</td></tr>
+            <tr><td><code>amazon.</code>（前方一致）</td><td><code>dashicons-cart</code></td><td>Amazon (地域 TLD 全般。著者ページ等)</td></tr>
+            <tr><td><code>patreon.com</code></td><td><code>dashicons-money-alt</code></td><td>Patreon</td></tr>
+            <tr><td><code>gravatar.com</code></td><td><code>dashicons-admin-users</code></td><td>Gravatar</td></tr>
+            <tr><td>上記に該当しないドメイン</td><td><code>dashicons-admin-site</code></td><td>汎用 Web サイト（フォールバック）</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">入力値の検証</div>
+        <p>sameAs フィールドに入力した 1 行が <code>filter_var($line, FILTER_VALIDATE_URL)</code> を通らなかった場合、その行は JSON-LD の <code>sameAs</code> 配列にもアイコン表示にも使われません。<code>http://</code> / <code>https://</code> から始まる完全な URL を入力してください。</p>
+    </div>
+
     <figure class="infographic">
         <img src="images/infographics/shortcode-block-flow.png" alt="ショートコード / ブロックの処理フローと JSON-LD 出力">
-        <figcaption>ショートコード / ブロックの処理フローと JSON-LD 出力</figcaption>
+        <figcaption>ショートコード / ブロックの処理フローと Standard / Custom JSON-LD の出力先</figcaption>
     </figure>
 
     <nav class="page-nav">
@@ -213,6 +473,6 @@
 </main>
 
 <div class="lightbox"></div>
-<script src="js/manual.js?v=1"></script>
+<script src="js/manual.js?v=2"></script>
 </body>
 </html>

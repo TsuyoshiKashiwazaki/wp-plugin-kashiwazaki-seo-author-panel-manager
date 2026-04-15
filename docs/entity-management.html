@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>エンティティ管理 - Author Panel Manager マニュアル</title>
-    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
 <button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
@@ -26,161 +26,549 @@
 
 <main class="content">
     <h1>エンティティ管理</h1>
-    <p class="lead">Person（個人）・Corporation（企業）・Organization（組織）の3種類のエンティティを登録・編集・削除する方法を解説します。</p>
+    <p class="lead">Person（個人）／ Corporation（企業）／ Organization（組織）の 3 種類のエンティティを、独立した 3 テーブルで管理します。各タブで全フィールドを個別に登録・編集・削除できます。</p>
 
-    <h2>Person（個人）の管理</h2>
+    <p>本プラグインの管理画面は <code>admin.php?page=kapm</code> に配置され、上部のナビゲーションタブで 3 つのエンティティ種別を切り替えます。デフォルトは Person タブで、URL クエリ <code>&amp;tab=corporation</code> / <code>&amp;tab=organization</code> で切り替わります。エンティティはすべて独立したカスタムテーブルに保存され、WordPress ユーザーとは関連付きません。</p>
+
+    <h2>管理画面の共通操作</h2>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p>WordPress管理画面のサイドバーから「Author Panel Manager」を開き、<strong>Personタブ</strong>をクリックします。</p>
+            <p>WordPress 管理画面の左サイドバーから <strong>「Kashiwazaki SEO Author Panel Manager」</strong>（<code>dashicons-id-alt</code> アイコン）をクリックします。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p><strong>新規追加</strong>ボタンをクリックして、Person登録画面を開きます。</p>
+            <p>上部の <strong>Person / Corporation / Organization</strong> タブをクリックして、管理したいエンティティ種別を選択します。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>各フィールドを入力し、<strong>保存</strong>をクリックして登録を完了します。</p>
+            <p>一覧画面の <strong>「新規追加」</strong> ボタンから登録画面を開き、各フィールドを入力して保存します。既存エンティティは <strong>「編集」</strong> リンクから修正できます。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <p>削除は一覧の <strong>「削除」</strong> リンクから行います。削除操作には JavaScript の <code>confirm()</code> ダイアログが表示され、さらにサーバー側で nonce 検証が行われます。</p>
         </div>
     </div>
 
-    <div class="screenshot"><img src="images/screenshots/02-person-edit.png" class="lightbox-trigger"></div>
+    <div class="screenshot"><img src="images/screenshots/01-person-list.png" alt="Person 一覧画面" class="lightbox-trigger"></div>
 
-    <h3>Personのフィールド一覧</h3>
+    <div class="callout callout-note">
+        <div class="callout-title">保存先テーブル</div>
+        <p>3 種のエンティティは別テーブルに保存されます（<code>{prefix}apm_persons</code> / <code>{prefix}apm_corporations</code> / <code>{prefix}apm_organizations</code>）。テーブルはプラグイン有効化時に <code>dbDelta()</code> で作成され、インデックスは <code>PRIMARY KEY (id)</code> のみです。詳細な DB スキーマは <a href="troubleshooting.html#db-schema">トラブルシューティングの DB スキーマ表</a>を参照してください。</p>
+    </div>
+
+    <h2>Person（個人）タブ</h2>
+
+    <p>Person タブは、記事の執筆者・レビュアー・編集者など「個人」を登録するためのタブです。ここで登録したエンティティはブロックエディタや <code>[author_panel]</code> ショートコードから Person の ID で参照され、Schema.org の <code>Person</code> 型 JSON-LD として出力されます。</p>
+
+    <div class="screenshot"><img src="images/screenshots/02-person-edit.png" alt="Person 編集画面" class="lightbox-trigger"></div>
+
+    <h3>Person の全フィールド（9 項目）</h3>
+
+    <p>Person 登録フォーム（<code>admin/views/person-form.php</code>）の全フィールドと、対応する DB カラム・型・既定値・未入力時の挙動を以下にまとめます。</p>
 
     <table>
         <thead>
             <tr>
-                <th style="width:35%;">フィールド名</th>
-                <th>説明</th>
+                <th style="width:18%;">UI 表示名</th>
+                <th style="width:14%;">内部キー<br>(POST / DB)</th>
+                <th style="width:12%;">DB 型</th>
+                <th style="width:8%;">必須</th>
+                <th style="width:12%;">既定値</th>
+                <th style="width:12%;">入力形式</th>
+                <th>未入力時の挙動</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>名前</td>
-                <td>表示名として使用される日本語の氏名です。</td>
+                <td><code>name</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>必須</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td>HTML の <code>required</code> 属性でブラウザ側バリデーション。サーバー側は <code>sanitize_text_field()</code> で無害化のみ。</td>
             </tr>
             <tr>
                 <td>英語名</td>
-                <td>構造化データ（JSON-LD）に出力される英語表記の名前です。</td>
+                <td><code>name_en</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td>空の場合、JSON-LD の <code>alternateName</code> プロパティは出力されません。HTML パネルの <code>(英語名)</code> 表記も省略されます。</td>
             </tr>
             <tr>
                 <td>Role</td>
-                <td>Author（著者）、Reviewer（レビュアー）、Editor（編集者）、Contributor（寄稿者）、Creator（作成者）、Translator（翻訳者）から選択します。</td>
+                <td><code>role</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'Author'</code></td>
+                <td>自由入力テキスト（ツールチップに推奨値一覧）</td>
+                <td>本フィールドはセレクトではなく <code>&lt;input type="text"&gt;</code> です。未定義値は <code>role_to_property()</code> で <code>author</code> として扱われます（後述マッピング表参照）。</td>
             </tr>
             <tr>
-                <td>肩書き</td>
-                <td>役職や専門分野などの肩書きを入力します。</td>
+                <td>肩書き（Job Title）</td>
+                <td><code>job_title</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td>空の場合、HTML パネルの肩書き行と JSON-LD の <code>jobTitle</code> プロパティは出力されません。</td>
             </tr>
             <tr>
-                <td>自己紹介</td>
-                <td>著者パネルに表示される自己紹介文です。</td>
+                <td>自己紹介（Bio）</td>
+                <td><code>bio</code></td>
+                <td><code>text</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>複数行テキスト（5 行表示）</td>
+                <td>空の場合、HTML パネルの Bio 段落と JSON-LD の <code>description</code> は省略されます。サニタイズは <code>sanitize_textarea_field()</code>（改行は保持、HTML タグは除去）。</td>
             </tr>
             <tr>
                 <td>画像</td>
-                <td>プロフィール画像をメディアライブラリから選択またはアップロードします。</td>
+                <td><code>image_url</code></td>
+                <td><code>varchar(2083)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>URL + メディアライブラリ選択ボタン</td>
+                <td>空の場合、パネルの画像要素と JSON-LD の <code>image</code>（<code>ImageObject</code>）は出力されません。URL は <code>esc_url_raw()</code> で保存されます。</td>
             </tr>
             <tr>
                 <td>URL</td>
-                <td>個人サイトやプロフィールページのURLです。</td>
+                <td><code>url</code></td>
+                <td><code>varchar(2083)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>URL</td>
+                <td>空の場合、名前がテキストのみ（リンクなし）になります。JSON-LD の <code>url</code> プロパティは省略され、<code>@id</code> 生成時のベース URL は <code>home_url('/')</code> にフォールバックします。</td>
             </tr>
             <tr>
                 <td>sameAs URL</td>
-                <td>SNSや外部プロフィール（X、LinkedIn等）のURLを複数登録できます。構造化データの<code>sameAs</code>プロパティに出力されます。</td>
+                <td><code>same_as</code></td>
+                <td><code>text</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>複数行テキスト（1 行 1 URL）</td>
+                <td>1 行ずつ <code>filter_var(FILTER_VALIDATE_URL)</code> で検証され、通過したもののみ JSON-LD の <code>sameAs</code> 配列とフロントのアイコン表示に使われます。無効な行は静かにスキップされます。</td>
             </tr>
             <tr>
                 <td>パネルデザイン</td>
-                <td>著者パネルの表示デザインを選択します。</td>
+                <td><code>panel_style</code></td>
+                <td><code>varchar(50)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'default'</code></td>
+                <td>select（5 値固定）</td>
+                <td>未指定時は <code>default</code>。選択肢は <code>default</code>／<code>dark</code>／<code>accent</code>／<code>minimal</code>／<code>card</code> の 5 種。後述「パネルデザイン」表を参照。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">DB 固定カラム</div>
+        <p>このほか、すべてのエンティティテーブルに <code>id bigint(20) unsigned AUTO_INCREMENT</code>（PRIMARY KEY）と <code>created_at datetime DEFAULT CURRENT_TIMESTAMP</code> が自動付与されます。ユーザーが入力するカラムではありません。</p>
+    </div>
+
+    <h3>Person の Role フィールド推奨値</h3>
+
+    <p>Role は自由入力テキストですが、ツールチップでは以下の 8 種類の値が推奨されています。ここに載っていない文字列を入れても保存は通りますが、Custom モードの JSON-LD 変換では未定義値として扱われます（既定の <code>author</code> にマップされる）。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:22%;">推奨値</th>
+                <th>意味</th>
+                <th style="width:22%;">Custom モード時の<br>Schema.org プロパティ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>Author</code>（既定）</td><td>記事の執筆者</td><td><code>author</code></td></tr>
+            <tr><td><code>Publisher</code></td><td>記事の発行元・出版社</td><td><code>publisher</code></td></tr>
+            <tr><td><code>Editor</code></td><td>記事の編集者</td><td><code>editor</code></td></tr>
+            <tr><td><code>Reviewer</code></td><td>記事のレビュー・監修者</td><td><code>reviewedBy</code></td></tr>
+            <tr><td><code>Contributor</code></td><td>寄稿者・協力者</td><td><code>contributor</code></td></tr>
+            <tr><td><code>Creator</code></td><td>コンテンツの作成者</td><td><code>creator</code></td></tr>
+            <tr><td><code>Sponsor</code></td><td>スポンサー・資金提供者</td><td><code>sponsor</code></td></tr>
+            <tr><td><code>Translator</code></td><td>翻訳者</td><td><code>translator</code></td></tr>
+        </tbody>
+    </table>
+
+    <h2>Corporation（企業）タブ</h2>
+
+    <p>Corporation タブは、記事の発行元や運営会社などの企業法人を登録するタブです。ここで登録したエンティティは Schema.org の <code>Corporation</code> 型として JSON-LD 出力されます。<code>Corporation</code> は <code>Organization</code> のサブタイプで、営利法人であることをより明示できます。</p>
+
+    <div class="screenshot"><img src="images/screenshots/03-corporation-list.png" alt="Corporation 一覧画面" class="lightbox-trigger"></div>
+
+    <h3>Corporation の全フィールド（8 項目）</h3>
+
+    <p>Corporation のフォーム（<code>admin/views/corporation-form.php</code>）は Person から <code>job_title</code> / <code>bio</code> / <code>image_url</code> を取り除き、<code>description</code>（説明）と <code>logo_url</code>（ロゴ画像）に置き換えた構成になっています。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:18%;">UI 表示名</th>
+                <th style="width:14%;">内部キー<br>(POST / DB)</th>
+                <th style="width:12%;">DB 型</th>
+                <th style="width:8%;">必須</th>
+                <th style="width:12%;">既定値</th>
+                <th style="width:12%;">入力形式</th>
+                <th>未入力時の挙動</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>名前</td>
+                <td><code>name</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>必須</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td><code>required</code> によるブラウザバリデーション。JSON-LD の <code>name</code> プロパティへ出力されます。</td>
+            </tr>
+            <tr>
+                <td>英語名</td>
+                <td><code>name_en</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td>空の場合、JSON-LD の <code>alternateName</code> と HTML パネルの英語併記が省略されます。</td>
+            </tr>
+            <tr>
+                <td>Role</td>
+                <td><code>role</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'Publisher'</code></td>
+                <td>自由入力テキスト</td>
+                <td>既定は <code>Publisher</code>（Person と異なる点に注意）。Custom モード時、<code>role_to_property()</code> で Schema.org プロパティに変換されます。</td>
+            </tr>
+            <tr>
+                <td>説明（Description）</td>
+                <td><code>description</code></td>
+                <td><code>text</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>複数行テキスト（5 行表示）</td>
+                <td>空の場合、HTML パネルの説明行と JSON-LD の <code>description</code> は出力されません。<code>sanitize_textarea_field()</code> で保存。</td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td><code>url</code></td>
+                <td><code>varchar(2083)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>URL</td>
+                <td>空の場合、名前はテキストのみ表示され、JSON-LD の <code>url</code> は省略されます。<code>@id</code> のベース URL は <code>home_url('/')</code>。</td>
+            </tr>
+            <tr>
+                <td>ロゴ</td>
+                <td><code>logo_url</code></td>
+                <td><code>varchar(2083)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>URL + メディアライブラリ選択ボタン</td>
+                <td>空の場合、パネルのロゴ画像と JSON-LD の <code>logo</code>（<code>ImageObject</code>）は出力されません。</td>
+            </tr>
+            <tr>
+                <td>sameAs URL</td>
+                <td><code>same_as</code></td>
+                <td><code>text</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>複数行テキスト（1 行 1 URL）</td>
+                <td>1 行ずつ <code>FILTER_VALIDATE_URL</code> で検証し、通過行のみ JSON-LD の <code>sameAs</code> 配列へ出力されます。</td>
+            </tr>
+            <tr>
+                <td>パネルデザイン</td>
+                <td><code>panel_style</code></td>
+                <td><code>varchar(50)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'default'</code></td>
+                <td>select（5 値固定）</td>
+                <td>選択肢は Person と共通（<code>default</code>／<code>dark</code>／<code>accent</code>／<code>minimal</code>／<code>card</code>）。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Corporation の Role フィールド推奨値</h3>
+
+    <p>Corporation/Organization のツールチップでは、記事発行元という主な用途に合わせて 5 種類のみを推奨しています。Person と同様、未定義値は <code>author</code> にマップされます。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:22%;">推奨値</th>
+                <th>意味</th>
+                <th style="width:22%;">Custom モード時の<br>Schema.org プロパティ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>Publisher</code>（既定）</td><td>記事の発行元・出版社</td><td><code>publisher</code></td></tr>
+            <tr><td><code>Author</code></td><td>記事の執筆者（法人名義の場合）</td><td><code>author</code></td></tr>
+            <tr><td><code>Sponsor</code></td><td>スポンサー・資金提供者</td><td><code>sponsor</code></td></tr>
+            <tr><td><code>Creator</code></td><td>コンテンツの作成者</td><td><code>creator</code></td></tr>
+            <tr><td><code>Contributor</code></td><td>寄稿者・協力者</td><td><code>contributor</code></td></tr>
+        </tbody>
+    </table>
+
+    <h2>Organization（組織）タブ</h2>
+
+    <p>Organization タブは、研究機関・業界団体・非営利組織・運営メディアなど、<code>Corporation</code> 以外の組織を登録するためのタブです。Schema.org の <code>Organization</code> 型として JSON-LD 出力されます。</p>
+
+    <div class="screenshot"><img src="images/screenshots/04-organization-list.png" alt="Organization 一覧画面" class="lightbox-trigger"></div>
+
+    <h3>Organization の全フィールド（8 項目）</h3>
+
+    <p>Organization のフォーム（<code>admin/views/organization-form.php</code>）のカラム構成は Corporation と完全に同一ですが、独立した DB テーブル <code>{prefix}apm_organizations</code> に保存され、Schema.org の型も異なります。Corporation と混在させず、営利法人以外は必ず Organization タブで登録してください。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:18%;">UI 表示名</th>
+                <th style="width:14%;">内部キー<br>(POST / DB)</th>
+                <th style="width:12%;">DB 型</th>
+                <th style="width:8%;">必須</th>
+                <th style="width:12%;">既定値</th>
+                <th style="width:12%;">入力形式</th>
+                <th>Schema.org での出力型</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>名前</td>
+                <td><code>name</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>必須</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td><code>Organization.name</code></td>
+            </tr>
+            <tr>
+                <td>英語名</td>
+                <td><code>name_en</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>1 行テキスト</td>
+                <td><code>Organization.alternateName</code></td>
+            </tr>
+            <tr>
+                <td>Role</td>
+                <td><code>role</code></td>
+                <td><code>varchar(255)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'Publisher'</code></td>
+                <td>自由入力テキスト</td>
+                <td>Custom モード時に <code>role_to_property()</code> でプロパティ変換</td>
+            </tr>
+            <tr>
+                <td>説明（Description）</td>
+                <td><code>description</code></td>
+                <td><code>text</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>複数行テキスト</td>
+                <td><code>Organization.description</code></td>
+            </tr>
+            <tr>
+                <td>URL</td>
+                <td><code>url</code></td>
+                <td><code>varchar(2083)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>URL</td>
+                <td><code>Organization.url</code></td>
+            </tr>
+            <tr>
+                <td>ロゴ</td>
+                <td><code>logo_url</code></td>
+                <td><code>varchar(2083)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>URL + メディアライブラリ</td>
+                <td><code>Organization.logo</code>（<code>ImageObject</code>）</td>
+            </tr>
+            <tr>
+                <td>sameAs URL</td>
+                <td><code>same_as</code></td>
+                <td><code>text</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>複数行テキスト</td>
+                <td><code>Organization.sameAs</code>（配列）</td>
+            </tr>
+            <tr>
+                <td>パネルデザイン</td>
+                <td><code>panel_style</code></td>
+                <td><code>varchar(50)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'default'</code></td>
+                <td>select</td>
+                <td>HTML パネルの CSS クラスに反映</td>
             </tr>
         </tbody>
     </table>
 
     <div class="callout callout-tip">
-        <div class="callout-title">Roleの選び方</div>
-        <p>記事執筆者は<strong>Author</strong>、レビュー担当は<strong>Reviewer</strong>、編集者は<strong>Editor</strong>を選択してください。適切なRoleを設定することで、構造化データが正しく出力され、検索エンジンに正確な情報を伝えられます。</p>
+        <div class="callout-title">Corporation と Organization の使い分け</div>
+        <p>一般的な営利企業（株式会社・合同会社等）は <strong>Corporation</strong>、学会・研究所・NPO・業界団体・運営メディア（ブランド名）などは <strong>Organization</strong> に登録してください。両者はテーブルも @id の接頭辞（<code>#corporation-{id}</code> / <code>#organization-{id}</code>）も分かれており、JSON-LD 上では別エンティティとして扱われます。</p>
     </div>
 
-    <h2>Corporation（企業）の管理</h2>
+    <h2>Role から Schema.org プロパティへの変換（role_to_property）</h2>
 
-    <p>Corporationタブでは、企業情報を登録・管理できます。Publisher（発行者）やSponsor（スポンサー）など、記事に関連する企業エンティティを設定します。</p>
-
-    <div class="screenshot"><img src="images/screenshots/03-corporation-list.png" class="lightbox-trigger"></div>
-
-    <h3>Corporationのフィールド一覧</h3>
+    <p>Custom モード（他プラグインの既存スキーマに著者情報を紐付ける出力方式）では、各エンティティの <code>role</code> フィールド値が <code>class-shortcode.php</code> の <code>role_to_property()</code> メソッドで Schema.org のプロパティ名に変換され、対象ノードに付与されます。対応表は以下のとおりです（大文字小文字は区別されません）。</p>
 
     <table>
         <thead>
             <tr>
-                <th style="width:35%;">フィールド名</th>
-                <th>説明</th>
+                <th style="width:40%;">入力 role 値（小文字化後）</th>
+                <th>出力プロパティ名</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>author</code> / <code>writer</code></td><td><code>author</code></td></tr>
+            <tr><td><code>publisher</code></td><td><code>publisher</code></td></tr>
+            <tr><td><code>editor</code></td><td><code>editor</code></td></tr>
+            <tr><td><code>reviewer</code></td><td><code>reviewedBy</code></td></tr>
+            <tr><td><code>contributor</code></td><td><code>contributor</code></td></tr>
+            <tr><td><code>creator</code></td><td><code>creator</code></td></tr>
+            <tr><td><code>sponsor</code> / <code>funder</code></td><td><code>sponsor</code></td></tr>
+            <tr><td><code>translator</code></td><td><code>translator</code></td></tr>
+            <tr><td>上記以外（未定義値・空文字）</td><td><code>author</code>（フォールバック）</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">Standard モードでは role は参照されません</div>
+        <p>Standard モード（ページ本文の直後に独立 JSON-LD を出力する方式）では、<code>@graph</code> に Person / Corporation / Organization ノードを並べるだけで、Article 等への紐付けは行いません。そのため <code>role_to_property()</code> はショートコードの <code>mode="custom"</code> 時にのみ使われます。</p>
+    </div>
+
+    <h2>パネルデザイン（panel_style）</h2>
+
+    <p>各エンティティには HTML パネルの見た目を決める <code>panel_style</code> を個別設定できます。CSS は <code>public/css/panel-style.css</code>（実測 <strong>4,629 バイト</strong>）に定義されており、JavaScript は使用しません。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:14%;">value</th>
+                <th style="width:22%;">CSS クラス</th>
+                <th style="width:30%;">見た目</th>
+                <th>用途の例</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>名前</td>
-                <td>企業の日本語名称です。</td>
+                <td><code>default</code>（既定）</td>
+                <td><code>.kapm-style-default</code></td>
+                <td>背景 <code>#f9f9f9</code>、細ボーダー <code>#e0e0e0</code>、角丸 6px</td>
+                <td>ほとんどのテーマに馴染む標準表示</td>
             </tr>
             <tr>
-                <td>英語名</td>
-                <td>構造化データに出力される英語表記の企業名です。</td>
+                <td><code>dark</code></td>
+                <td><code>.kapm-style-dark</code></td>
+                <td>背景 <code>#2b2d42</code>、左アクセント <code>#8ecae6</code>、白系テキスト</td>
+                <td>ダークテーマでの表示。コメントに <code>WCAG AA 準拠</code>（背景に対し全テキスト 4.5:1 以上）と明記されています</td>
             </tr>
             <tr>
-                <td>Role</td>
-                <td>Publisher（発行者）、Sponsor（スポンサー）など、記事における企業の役割を選択します。</td>
+                <td><code>accent</code></td>
+                <td><code>.kapm-style-accent</code></td>
+                <td>白背景、左端に 4px の <code>#0073aa</code> カラーバー、角丸なし</td>
+                <td>本文と一体化しつつ左側に存在感を持たせたい場合</td>
             </tr>
             <tr>
-                <td>説明</td>
-                <td>企業の概要や事業内容を記述します。</td>
+                <td><code>minimal</code></td>
+                <td><code>.kapm-style-minimal</code></td>
+                <td>背景・ボーダー・角丸なし。下線 <code>#eee</code> のみ</td>
+                <td>装飾を極力排したい記事末尾の署名として</td>
             </tr>
             <tr>
-                <td>URL</td>
-                <td>企業の公式サイトURLです。</td>
-            </tr>
-            <tr>
-                <td>ロゴ</td>
-                <td>企業ロゴ画像をメディアライブラリから選択またはアップロードします。</td>
-            </tr>
-            <tr>
-                <td>sameAs URL</td>
-                <td>企業の公式SNSアカウントや外部プロフィールのURLを複数登録できます。</td>
-            </tr>
-            <tr>
-                <td>パネルデザイン</td>
-                <td>著者パネルの表示デザインを選択します。</td>
+                <td><code>card</code></td>
+                <td><code>.kapm-style-card</code></td>
+                <td>白背景、10px 角丸、シャドウ <code>0 2px 12px rgba(0,0,0,.08)</code></td>
+                <td>浮き上がる「カード」として目立たせたい場合</td>
             </tr>
         </tbody>
     </table>
 
-    <h2>Organization（組織）の管理</h2>
-
-    <p>Organizationタブでは、研究機関、NPO、業界団体などの組織情報を管理します。フィールド構成はCorporationと同一ですが、企業以外の組織を登録する際に使用します。</p>
-
-    <div class="screenshot"><img src="images/screenshots/04-organization-list.png" class="lightbox-trigger"></div>
+    <div class="callout callout-tip">
+        <div class="callout-title">エンティティごとに個別設定</div>
+        <p>パネルデザインは <strong>エンティティごと</strong>に保存されます。同じ記事に Person と Corporation を並べて、それぞれ異なるデザインを適用することもできます。</p>
+    </div>
 
     <h2>使用中の記事の確認</h2>
 
-    <p>エンティティ編集画面の下部には「使用中の記事」セクションが表示されます。そのエンティティがどの記事で参照されているかを一覧で確認できます。</p>
+    <p>Person / Corporation / Organization の <strong>編集画面下部</strong>に「使用中の記事」セクションが表示されます。そのエンティティを参照している投稿を自動検出して一覧表示する機能で、削除前の影響範囲確認に使えます。</p>
 
-    <div class="callout callout-note">
-        <div class="callout-title">削除前の確認</div>
-        <p>エンティティを削除する前に、必ず「使用中の記事」セクションを確認し、参照しているすべての記事からエンティティの紐付けを解除してください。</p>
+    <p>実装は <code>KAPM_Database::get_posts_using_entity()</code> にあり、2 段階で記事を絞り込みます。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p><strong>SQL LIKE で候補を抽出</strong>：<code>wp_posts.post_content</code> に <code>"persons":"</code> / <code>"corporations":"</code> / <code>"organizations":"</code> の文字列パターンを含む行を <code>LIKE</code> 検索します。<code>post_status = 'publish'</code> に限定されるため、下書き・非公開・予約投稿・ゴミ箱は検出されません。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <p><strong>parse_blocks() で正確に照合</strong>：候補記事ごとに <code>parse_blocks()</code> を実行し、<code>kapm/author-panel</code> ブロックの <code>persons</code> / <code>corporations</code> / <code>organizations</code> 属性を実際にパースして、対象 ID がカンマ区切りリスト内に存在するかを検証します。</p>
+        </div>
     </div>
 
     <div class="callout callout-warning">
-        <div class="callout-title">アンインストール時のデータ削除</div>
-        <p>プラグインをアンインストールすると、3つのカスタムテーブル（<code>wp_apm_persons</code>、<code>wp_apm_corporations</code>、<code>wp_apm_organizations</code>）がすべて削除されます。必要なデータは事前にバックアップしてください。</p>
+        <div class="callout-title">検出対象の制限</div>
+        <p>この逆引きは <strong>Gutenberg ブロック経由の参照のみ</strong>を対象とします。ショートコード <code>[author_panel persons="..."]</code> で参照している場合、ブロック属性の JSON 形式とはパターンが一致しないため <strong>検出されません</strong>。また、公開済み（<code>publish</code>）以外の投稿ステータスも対象外です。</p>
+    </div>
+
+    <div class="callout callout-note">
+        <div class="callout-title">削除前の確認</div>
+        <p>エンティティを削除する前に、必ず「使用中の記事」セクションを確認してください。削除された ID を参照しているブロックはフロント側で「表示するエンティティ無し」として空出力になります（エラー表示ではなく、パネル自体が消える）。</p>
+    </div>
+
+    <h2>保存・削除処理のセキュリティ</h2>
+
+    <p>3 つのエンティティすべてに対して、保存と削除のたびに nonce 検証と capability チェックが行われます。具体的なアクション名は以下のとおりです。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28%;">操作</th>
+                <th style="width:32%;">nonce アクション名</th>
+                <th>nonce フィールド名</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Person 保存</td><td><code>kapm_save_person</code></td><td><code>kapm_person_nonce</code></td></tr>
+            <tr><td>Person 削除</td><td><code>kapm_delete_person</code></td><td>URL の <code>_wpnonce</code></td></tr>
+            <tr><td>Corporation 保存</td><td><code>kapm_save_corporation</code></td><td><code>kapm_corporation_nonce</code></td></tr>
+            <tr><td>Corporation 削除</td><td><code>kapm_delete_corporation</code></td><td>URL の <code>_wpnonce</code></td></tr>
+            <tr><td>Organization 保存</td><td><code>kapm_save_organization</code></td><td><code>kapm_organization_nonce</code></td></tr>
+            <tr><td>Organization 削除</td><td><code>kapm_delete_organization</code></td><td>URL の <code>_wpnonce</code></td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">管理画面全体の権限</div>
+        <p>管理画面の表示と保存・削除は <code>current_user_can('manage_options')</code>（管理者権限）でガードされています。REST API は編集者以上（<code>edit_posts</code>）で参照可能です。詳細は <a href="troubleshooting.html#rest-api">トラブルシューティングの REST API 仕様</a>を参照してください。</p>
+    </div>
+
+    <h2>アンインストール時のデータ削除</h2>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">プラグイン削除で 3 テーブルが完全削除されます</div>
+        <p>WordPress 管理画面でプラグインを <strong>削除</strong>すると、<code>uninstall.php</code> が実行され <code>{prefix}apm_persons</code> / <code>{prefix}apm_corporations</code> / <code>{prefix}apm_organizations</code> の 3 テーブルが <code>DROP TABLE IF EXISTS</code> により完全に消去されます。<strong>無効化（deactivate）では削除されません</strong>が、削除（delete）は復元不可です。エンティティデータを保全する場合は事前に <code>wp db export</code> 等で必ずバックアップを取ってください。</p>
     </div>
 
     <figure class="infographic">
-        <img src="images/infographics/entity-management-flow.png">
-        <figcaption>エンティティの登録から表示までの流れ</figcaption>
+        <img src="images/infographics/entity-management-flow.png" alt="エンティティの登録から表示までの流れ">
+        <figcaption>エンティティ登録から記事への挿入・JSON-LD 出力までの流れ</figcaption>
     </figure>
 
     <nav class="page-nav">
@@ -195,6 +583,6 @@
 </main>
 
 <div class="lightbox"></div>
-<script src="js/manual.js?v=1"></script>
+<script src="js/manual.js?v=2"></script>
 </body>
 </html>

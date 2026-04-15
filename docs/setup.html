@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>インストール・初期設定 - Author Panel Manager マニュアル</title>
-    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
 <button class="hamburger-btn" aria-label="メニューを開く">&#9776;</button>
@@ -26,29 +26,28 @@
 
 <main class="content">
     <h1>インストール・初期設定</h1>
-
-    <p>プラグインのインストールから初期設定まで、ステップバイステップで解説します。</p>
+    <p class="lead">プラグインのインストール、管理画面の場所、3 テーブルの自動生成、初期登録の手順までを順番に解説します。</p>
 
     <h2>インストール方法</h2>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p>プラグインファイルを <code>/wp-content/plugins/</code> にアップロード</p>
+            <p>GitHub からダウンロードした <code>wp-plugin-kashiwazaki-seo-author-panel-manager</code> ディレクトリ一式を <code>/wp-content/plugins/</code> にアップロードします。</p>
         </div>
     </div>
 
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p>WordPress管理画面「プラグイン」→「インストール済みプラグイン」から「Kashiwazaki SEO Author Panel Manager」を有効化</p>
+            <p>WordPress 管理画面 「プラグイン」 → 「インストール済みプラグイン」 から <strong>「Kashiwazaki SEO Author Panel Manager」</strong> を <strong>有効化</strong> します。有効化時に <code>register_activation_hook</code> で <code>KAPM_Database::create_tables()</code> が走り、3 つのカスタムテーブルが自動生成されます。</p>
         </div>
     </div>
 
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>管理画面の左メニューに「Kashiwazaki SEO Author Panel Manager」が追加されます</p>
+            <p>管理画面左サイドバーに <strong>「Kashiwazaki SEO Author Panel Manager」</strong>（<code>dashicons-id-alt</code> アイコン）が追加されます。メニューの表示位置は 81 番（WordPress 標準メニューの下、カスタムメニュー上部付近）です。</p>
         </div>
     </div>
 
@@ -57,112 +56,171 @@
     </div>
 
     <div class="callout callout-tip">
-        <p>メニューアイコンは dashicons-id-alt（IDカード）アイコンです。</p>
+        <div class="callout-title">プラグイン一覧の「設定」リンク</div>
+        <p>インストール済みプラグイン画面では、本プラグインのエントリに「設定」リンクが表示されます（<code>plugin_action_links_</code> フィルタで追加）。クリックすると <code>admin.php?page=kapm</code>（Person タブ）に直接移動します。</p>
+    </div>
+
+    <h2>生成される 3 つのカスタムテーブル</h2>
+
+    <p>プラグイン有効化時、<code>dbDelta()</code> を通じて以下の 3 テーブルが作成されます。すべて独立したテーブルで、WordPress の <code>wp_users</code> / <code>wp_posts</code> とは関連付きません。エンティティ ID は各テーブルで独立して採番されます。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:32%;">テーブル名</th>
+                <th style="width:18%;">主なカラム数</th>
+                <th>用途・保存内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>{prefix}apm_persons</code></td>
+                <td>11</td>
+                <td>個人エンティティ。name / name_en / role / job_title / bio / image_url / url / same_as / panel_style / created_at</td>
+            </tr>
+            <tr>
+                <td><code>{prefix}apm_corporations</code></td>
+                <td>10</td>
+                <td>企業エンティティ（<code>Corporation</code> 型）。description / logo_url / url / same_as 等</td>
+            </tr>
+            <tr>
+                <td><code>{prefix}apm_organizations</code></td>
+                <td>10</td>
+                <td>組織エンティティ（<code>Organization</code> 型）。カラム構成は Corporation と同一</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><code>{prefix}</code> は通常 <code>wp_</code> です（wp-config.php で変更している場合はそちらに準拠）。完全なカラム定義と型は <a href="troubleshooting.html#db-schema">トラブルシューティングの DB スキーマ表</a>を参照してください。</p>
+
+    <div class="callout callout-note">
+        <div class="callout-title">インデックス戦略</div>
+        <p>3 テーブルとも <strong>PRIMARY KEY (id) のみ</strong>です。エンティティ件数は通常数十件以下を想定しており、追加インデックスは設定していません。</p>
     </div>
 
     <h2>管理画面の構成</h2>
 
-    <p>管理画面はPerson・Corporation・Organizationの3つのタブで構成されています。各タブからエンティティの一覧表示・新規追加・編集・削除が行えます。</p>
+    <p>管理画面（<code>admin.php?page=kapm</code>）は、上部のタブナビゲーションで Person / Corporation / Organization の 3 タブを切り替える構成です。各タブは一覧表示 → 新規追加／編集フォーム → 保存 という一般的な WP 管理画面の流れです。</p>
 
     <div class="screenshot">
-        <img src="images/screenshots/01-person-list.png" alt="Person一覧画面" class="lightbox-trigger">
+        <img src="images/screenshots/01-person-list.png" alt="Person 一覧画面" class="lightbox-trigger">
     </div>
 
-    <h2>初期設定手順</h2>
+    <h2>初期設定の流れ</h2>
 
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p>「Person」タブを選択し、「新規追加」をクリックして著者情報を登録</p>
+            <p><strong>Person タブ</strong>で「新規追加」をクリックし、記事執筆者・レビュアー等の個人エンティティを登録します。最低限「名前」のみ必須。英語名・肩書き・自己紹介・画像・URL・sameAs は任意です。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p>名前、英語名、Role、肩書き、自己紹介、画像URL、URL、sameAs URLを入力</p>
+            <p>必要に応じて <strong>Corporation タブ</strong>で運営会社・発行元などを登録し、<strong>Organization タブ</strong>で研究機関・運営メディアなど非営利組織を登録します。3 種類は混在させずに正しいタブへ登録してください（Schema.org の型が異なるため）。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>必要に応じて「Corporation」「Organization」タブで企業・組織情報も登録</p>
+            <p>各エンティティには <strong>パネルデザイン</strong>（default / dark / accent / minimal / card の 5 種）を個別設定できます。記事によって異なるデザインで表示したい場合は、同じエンティティを複数登録して使い分けるか、ブロック／ショートコード側でラベルを指定してください。</p>
         </div>
     </div>
-
     <div class="step">
         <div class="step-number">4</div>
         <div class="step-body">
-            <p>投稿に著者パネルを表示するには、Gutenbergブロックを挿入するか <code>[author_panel]</code> ショートコードを使用</p>
+            <p>記事への挿入は <strong>Gutenberg ブロック</strong>（ブロック追加メニューで「著者」「author」で検索）または <strong>ショートコード</strong> <code>[author_panel persons="1,2" corporations="1"]</code> のいずれかで行います。詳細は <a href="shortcode-block.html">ショートコード＆ブロック</a>ページを参照してください。</p>
         </div>
     </div>
 
-    <h2>エンティティの種類</h2>
+    <h2>パネルデザイン一覧</h2>
+
+    <p>各エンティティ編集画面の「パネルデザイン」セレクトから選択します。CSS は <code>public/css/panel-style.css</code>（実測 4,629 バイト）で定義されており、JavaScript は使用しません。</p>
 
     <table>
         <thead>
             <tr>
-                <th style="width:35%;">種類</th>
-                <th>Schema.org型</th>
-                <th>用途</th>
+                <th style="width:16%;">value</th>
+                <th style="width:26%;">CSS クラス</th>
+                <th>見た目の特徴</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Person</td>
-                <td>schema:Person</td>
-                <td>個人の著者・編集者・レビュアー</td>
-            </tr>
-            <tr>
-                <td>Corporation</td>
-                <td>schema:Corporation</td>
-                <td>企業・法人</td>
-            </tr>
-            <tr>
-                <td>Organization</td>
-                <td>schema:Organization</td>
-                <td>団体・組織・非営利法人など</td>
-            </tr>
+            <tr><td><code>default</code></td><td><code>.kapm-style-default</code></td><td>グレー背景 <code>#f9f9f9</code>、細ボーダー、角丸 6px。既定</td></tr>
+            <tr><td><code>dark</code></td><td><code>.kapm-style-dark</code></td><td>ダーク背景 <code>#2b2d42</code>、水色アクセント。WCAG AA コントラスト比準拠</td></tr>
+            <tr><td><code>accent</code></td><td><code>.kapm-style-accent</code></td><td>白背景、左端 4px の青アクセントバー</td></tr>
+            <tr><td><code>minimal</code></td><td><code>.kapm-style-minimal</code></td><td>背景・ボーダー無し、下線のみのミニマル表示</td></tr>
+            <tr><td><code>card</code></td><td><code>.kapm-style-card</code></td><td>白背景 + 10px 角丸 + シャドウの「カード」表示</td></tr>
         </tbody>
     </table>
 
-    <h2>パネルデザイン</h2>
+    <p>各デザインの詳細な CSS 仕様（配色・境界線・適用例）は <a href="entity-management.html">エンティティ管理</a>ページにまとめています。</p>
+
+    <h2>保存・削除のセキュリティ概要</h2>
+
+    <p>管理画面の保存・削除処理は、すべて nonce 検証と capability チェックで保護されています。通常の利用で意識する必要はありませんが、カスタマイズやトラブルシューティング時は以下の点に注意してください。</p>
+
+    <ul>
+        <li>管理画面表示と保存・削除は <code>current_user_can('manage_options')</code>（管理者ロール相当）が必須</li>
+        <li>保存時の nonce アクション: <code>kapm_save_person</code> / <code>kapm_save_corporation</code> / <code>kapm_save_organization</code></li>
+        <li>削除時の nonce アクション: <code>kapm_delete_person</code> / <code>kapm_delete_corporation</code> / <code>kapm_delete_organization</code></li>
+        <li>ブロックエディタからの REST API 呼び出しは別扱いで <code>current_user_can('edit_posts')</code>（投稿者以上）</li>
+    </ul>
+
+    <p>全 6 種類の nonce アクション名と送信元は <a href="troubleshooting.html#nonce">トラブルシューティングの nonce 一覧</a>で確認できます。</p>
+
+    <h2>メニュー情報サマリー</h2>
 
     <table>
         <thead>
             <tr>
-                <th style="width:35%;">デザイン名</th>
-                <th>説明</th>
+                <th style="width:30%;">項目</th>
+                <th>値</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Default</td>
-                <td>標準的なライトテーマのパネルデザイン</td>
-            </tr>
-            <tr>
-                <td>Dark</td>
-                <td>ダークテーマのパネルデザイン</td>
-            </tr>
-            <tr>
-                <td>Accent</td>
-                <td>アクセントカラーを強調したデザイン</td>
-            </tr>
-            <tr>
-                <td>Minimal</td>
-                <td>最小限の装飾でシンプルなデザイン</td>
-            </tr>
-            <tr>
-                <td>Card</td>
-                <td>カード型のデザイン</td>
-            </tr>
+            <tr><td>管理ページスラッグ</td><td><code>kapm</code>（<code>admin.php?page=kapm</code>）</td></tr>
+            <tr><td>メニュー表示位置</td><td>81（<code>add_menu_page</code> の position 引数）</td></tr>
+            <tr><td>メニューアイコン</td><td><code>dashicons-id-alt</code>（ID カードアイコン）</td></tr>
+            <tr><td>管理画面権限</td><td><code>manage_options</code></td></tr>
+            <tr><td>タブ切替 URL クエリ</td><td><code>&amp;tab=person</code> / <code>&amp;tab=corporation</code> / <code>&amp;tab=organization</code>（既定は person）</td></tr>
         </tbody>
     </table>
 
-    <div class="callout callout-note">
-        <p>パネルデザインはエンティティ登録時に個別に設定できます。</p>
+    <h2>国際化（i18n）の現状</h2>
+
+    <p>本プラグインの Text Domain ヘッダーは <code>kashiwazaki-seo-author-panel-manager</code>、Domain Path ヘッダーは <code>/languages</code> が宣言されています。PHP 側の管理画面 UI 文字列の多くは <code>__()</code> / <code>esc_html__()</code> / <code>esc_attr__()</code> / <code>esc_html_e()</code> / <code>esc_attr_e()</code> 経由で出力されており、翻訳関数のフックポイント自体は存在します。</p>
+
+    <div class="callout callout-warning">
+        <div class="callout-title">現状は翻訳ファイル配置だけでは完全多言語化できません</div>
+        <p>v1.0.0 の実装には <code>load_plugin_textdomain()</code> の呼び出しがなく、<code>wp_set_script_translations()</code> によるブロックエディタ JS への翻訳連携もありません。加えて、以下の箇所は翻訳関数を通っておらず日本語文字列がハードコードされています:</p>
+        <ul>
+            <li>Gutenberg ブロックエディタ (<code>assets/js/gutenberg-sidebar.js</code>) の UI 文字列全般 (パネルタイトル、プレースホルダ、アイコン等)</li>
+            <li>パネルデザイン選択肢のラベル (<code>admin/views/_panel-style-select.php</code>)</li>
+            <li>一部のインライン説明文</li>
+        </ul>
+        <p>他言語環境で運用したい場合、現時点では <code>load_plugin_textdomain()</code> の追加、JS 文字列の <code>wp.i18n</code> API 化、ハードコード文字列の翻訳関数化をコード側で行うフォーク対応が必要です。</p>
     </div>
+
+    <h2>GitHub リポジトリと更新</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:30%;">項目</th>
+                <th>値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>リポジトリ</td><td><a href="https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager" target="_blank" rel="noopener">github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager</a></td></tr>
+            <tr><td>マニュアル URL（このページ）</td><td><a href="https://tsuyoshikashiwazaki.github.io/wp-plugin-kashiwazaki-seo-author-panel-manager/" target="_blank" rel="noopener">tsuyoshikashiwazaki.github.io/wp-plugin-kashiwazaki-seo-author-panel-manager</a></td></tr>
+            <tr><td>更新履歴</td><td>リポジトリ内の <code>CHANGELOG.md</code></td></tr>
+            <tr><td>ライセンス</td><td>GPL-2.0+</td></tr>
+            <tr><td>作者プロフィール</td><td><a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></td></tr>
+        </tbody>
+    </table>
+
+    <p>プラグイン本体のアップデートは現状 GitHub から手動ダウンロード → <code>/wp-content/plugins/</code> への上書きで行います。WordPress.org プラグインディレクトリ経由の自動更新は未提供です。</p>
 
     <nav class="page-nav">
         <a href="index.html" class="prev">&laquo; 概要</a>
@@ -176,6 +234,6 @@
 </main>
 
 <div class="lightbox"></div>
-<script src="js/manual.js?v=1"></script>
+<script src="js/manual.js?v=2"></script>
 </body>
 </html>
