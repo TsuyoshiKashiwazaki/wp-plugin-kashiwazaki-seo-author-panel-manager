@@ -3,6 +3,14 @@
 このプロジェクトのすべての変更はこのファイルに記録されます。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/) に基づいています。
 
+## [1.0.2] - 2026-04-15
+
+### セキュリティ
+- **[MEDIUM]** Schema.org JSON-LD の sameAs 配列に `javascript:`、`data:`、`file:` 等の危険なスキームを含む URL が混入する経路を遮断 (`includes/class-shortcode.php`)。`extract_valid_urls()` を `filter_var( FILTER_VALIDATE_URL )` のみの検証から、`wp_parse_url()` で取り出した scheme を許可リスト (`http`/`https`) と照合する方式に変更。フロント `<a href>` は `esc_url()` でガードされていたが、JSON-LD 構造化データの sameAs は esc 不要な領域でそのまま consumer (headless WordPress / 他 SEO プラグイン / クローラ) に渡るため、後段で任意スキームが意図せず処理される vector を塞いだ。フィルタフック `kapm_same_as_protocols` を追加し、特殊用途向けに許可スキームを拡張可能。
+
+### バグ修正
+- ブロック属性 `labels` の JSON 値が個別キーで非 scalar (配列/オブジェクト) を含む場合に、フロント描画時に `esc_html()` が PHP 8 系で `TypeError` を発生させて著者パネル全体が描画破綻する問題を修正 (`includes/class-shortcode.php`)。`json_decode` 後に各 value を `is_scalar()` でチェックし、非 scalar は空文字に正規化することでフォールバック。
+
 ## [1.0.1] - 2026-04-15
 
 ### セキュリティ
@@ -65,5 +73,6 @@
 - WCAG AA準拠のコントラスト比（Darkテーマ含む全デザイン）
 - uninstall.phpによるアンインストール時テーブル削除
 
+[1.0.2]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.2
 [1.0.1]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.1
 [1.0.0]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.0

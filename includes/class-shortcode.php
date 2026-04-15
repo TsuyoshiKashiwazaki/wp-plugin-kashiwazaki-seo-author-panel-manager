@@ -223,6 +223,11 @@ class KAPM_Shortcode {
         $decoded_labels = json_decode( (string) $atts['labels'], true );
         $labels         = is_array( $decoded_labels ) ? $decoded_labels : array();
 
+        // 各 value を scalar に正規化 (非 scalar は esc_html で TypeError を起こすため空文字へ)
+        foreach ( $labels as $key => $value ) {
+            $labels[ $key ] = is_scalar( $value ) ? (string) $value : '';
+        }
+
         $html = $this->build_html( $persons, $corporations, $organizations, $labels );
 
         if ( $atts['mode'] === 'standard' ) {
@@ -505,18 +510,29 @@ class KAPM_Shortcode {
     }
 
     /**
-     * same_as テキストを FILTER_VALIDATE_URL で検証して有効 URL 配列を返す
+     * same_as テキストを検証して有効 URL 配列を返す
+     * scheme は許可リスト (デフォルト http/https) のみ通す。
+     * filter_var の FILTER_VALIDATE_URL は javascript:// 等も valid と判定するため、
+     * scheme を明示的に check することで JSON-LD への危険スキーム混入を防ぐ。
+     * フィルタフック `kapm_same_as_protocols` で許可スキームを拡張可能。
      */
     private function extract_valid_urls( string $text ): array {
         if ( trim( $text ) === '' ) {
             return array();
         }
-        $lines = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
-        $urls  = array();
+        $allowed_schemes = (array) apply_filters( 'kapm_same_as_protocols', array( 'http', 'https' ) );
+        $allowed_schemes = array_map( 'strtolower', $allowed_schemes );
+        $lines           = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
+        $urls            = array();
         foreach ( $lines as $line ) {
-            if ( filter_var( $line, FILTER_VALIDATE_URL ) ) {
-                $urls[] = $line;
+            if ( ! filter_var( $line, FILTER_VALIDATE_URL ) ) {
+                continue;
             }
+            $scheme = strtolower( (string) wp_parse_url( $line, PHP_URL_SCHEME ) );
+            if ( $scheme === '' || ! in_array( $scheme, $allowed_schemes, true ) ) {
+                continue;
+            }
+            $urls[] = $line;
         }
         return array_values( array_unique( $urls ) );
     }

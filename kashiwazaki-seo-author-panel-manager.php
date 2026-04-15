@@ -3,7 +3,7 @@
  * Plugin Name: Kashiwazaki SEO Author Panel Manager
  * Plugin URI: https://www.tsuyoshikashiwazaki.jp
  * Description: Manages an independent author database with Person, Corporation, and Organization entities. Outputs author panels via shortcode with Schema.org JSON-LD structured data, supporting both standalone and custom modes that link to existing Article/NewsArticle/WebPage schema IDs from other plugins.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: 柏崎剛 (Tsuyoshi Kashiwazaki)
  * Author URI: https://www.tsuyoshikashiwazaki.jp/profile/
  * Text Domain: kashiwazaki-seo-author-panel-manager
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'KAPM_VERSION', '1.0.1' );
+define( 'KAPM_VERSION', '1.0.2' );
 define( 'KAPM_PLUGIN_FILE', __FILE__ );
 define( 'KAPM_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'KAPM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
