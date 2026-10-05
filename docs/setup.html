@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.2</span>
+        <span class="version">v1.0.3</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -75,17 +75,17 @@
         <tbody>
             <tr>
                 <td><code>{prefix}apm_persons</code></td>
-                <td>11</td>
-                <td>個人エンティティ。name / name_en / role / job_title / bio / image_url / url / same_as / panel_style / created_at</td>
+                <td>15</td>
+                <td>個人エンティティ。name / name_en / role / job_title / bio / image_url / url / same_as / panel_style / panel_color / color_bg / color_text / color_accent / created_at</td>
             </tr>
             <tr>
                 <td><code>{prefix}apm_corporations</code></td>
-                <td>10</td>
-                <td>企業エンティティ（<code>Corporation</code> 型）。description / logo_url / url / same_as 等</td>
+                <td>14</td>
+                <td>企業エンティティ（<code>Corporation</code> 型）。description / logo_url / url / same_as / panel_style / panel_color / 3 色 等</td>
             </tr>
             <tr>
                 <td><code>{prefix}apm_organizations</code></td>
-                <td>10</td>
+                <td>14</td>
                 <td>組織エンティティ（<code>Organization</code> 型）。カラム構成は Corporation と同一</td>
             </tr>
         </tbody>
@@ -96,6 +96,11 @@
     <div class="callout callout-note">
         <div class="callout-title">インデックス戦略</div>
         <p>3 テーブルとも <strong>PRIMARY KEY (id) のみ</strong>です。エンティティ件数は通常数十件以下を想定しており、追加インデックスは設定していません。</p>
+    </div>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">更新時の列の追加は自動</div>
+        <p>v1.0.3 でカラーの 4 列（<code>panel_color</code> / <code>color_bg</code> / <code>color_text</code> / <code>color_accent</code>）が増えました。ファイルを上書きして更新した場合も、次の読み込み時に <code>plugins_loaded</code> でオプション <code>kapm_db_version</code> を確認し、古ければ <code>dbDelta()</code> で足りない列を追加します。再有効化や手作業は不要で、既存のデータはそのまま残ります。</p>
     </div>
 
     <h2>管理画面の構成</h2>
@@ -123,7 +128,7 @@
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>各エンティティには <strong>パネルデザイン</strong>（default / dark / accent / minimal / card の 5 種）を個別設定できます。記事によって異なるデザインで表示したい場合は、同じエンティティを複数登録して使い分けるか、ブロック／ショートコード側でラベルを指定してください。</p>
+            <p>各エンティティには <strong>パネルのデザイン</strong>（標準 / アクセント / ミニマル / カードの 4 種）と <strong>パネルのカラー</strong>（おまかせ / グレー / 白 / ダーク / ブルー / グリーン / オレンジ / カスタムの 8 種）を別々に設定できます。画像の形（丸・四角・楕円など）、表示ラベル、並び順は、記事ごとにブロック／ショートコード側で指定します。</p>
         </div>
     </div>
     <div class="step">
@@ -133,28 +138,24 @@
         </div>
     </div>
 
-    <h2>パネルデザイン一覧</h2>
+    <h2>パネルのデザインとカラー一覧</h2>
 
-    <p>各エンティティ編集画面の「パネルデザイン」セレクトから選択します。CSS は <code>public/css/panel-style.css</code>（実測 4,629 バイト）で定義されており、JavaScript は使用しません。</p>
+    <p>各エンティティ編集画面の「パネルのデザイン」と「パネルのカラー」の 2 つのセレクトから選びます。形と色を別々に選べるので、たとえば「カード × ダーク」のような組み合わせもできます。CSS は <code>public/css/panel-style.css</code>（実測 8,042 バイト）で定義されており、表示に JavaScript は使用しません。</p>
 
     <table>
         <thead>
             <tr>
-                <th style="width:16%;">value</th>
-                <th style="width:26%;">CSS クラス</th>
-                <th>見た目の特徴</th>
+                <th style="width:22%;">項目</th>
+                <th>選択肢</th>
             </tr>
         </thead>
         <tbody>
-            <tr><td><code>default</code></td><td><code>.kapm-style-default</code></td><td>グレー背景 <code>#f9f9f9</code>、細ボーダー、角丸 6px。既定</td></tr>
-            <tr><td><code>dark</code></td><td><code>.kapm-style-dark</code></td><td>ダーク背景 <code>#2b2d42</code>、水色アクセント。WCAG AA コントラスト比準拠</td></tr>
-            <tr><td><code>accent</code></td><td><code>.kapm-style-accent</code></td><td>白背景、左端 4px の青アクセントバー</td></tr>
-            <tr><td><code>minimal</code></td><td><code>.kapm-style-minimal</code></td><td>背景・ボーダー無し、下線のみのミニマル表示</td></tr>
-            <tr><td><code>card</code></td><td><code>.kapm-style-card</code></td><td>白背景 + 10px 角丸 + シャドウの「カード」表示</td></tr>
+            <tr><td>パネルのデザイン（形）</td><td>標準（枠線）・アクセント（左に太線）・ミニマル（下線のみ）・カード（影付き）</td></tr>
+            <tr><td>パネルのカラー（色）</td><td>おまかせ（デザインに合わせる）・グレー・白・ダーク・ブルー・グリーン・オレンジ・カスタム（背景色・文字色・アクセント色を指定）</td></tr>
         </tbody>
     </table>
 
-    <p>各デザインの詳細な CSS 仕様（配色・境界線・適用例）は <a href="entity-management.html">エンティティ管理</a>ページにまとめています。</p>
+    <p>既定は「標準 × おまかせ」で、v1.0.2 までの既定（Default）と同じ見た目です。v1.0.2 までの「Dark」は「標準 × ダーク」として読み替えられます。配色の値・CSS クラスなどの詳細は <a href="entity-management.html">エンティティ管理</a>ページにまとめています。</p>
 
     <h2>保存・削除のセキュリティ概要</h2>
 
@@ -196,7 +197,7 @@
         <p>v1.0.0 の実装には <code>load_plugin_textdomain()</code> の呼び出しがなく、<code>wp_set_script_translations()</code> によるブロックエディタ JS への翻訳連携もありません。加えて、以下の箇所は翻訳関数を通っておらず日本語文字列がハードコードされています:</p>
         <ul>
             <li>Gutenberg ブロックエディタ (<code>assets/js/gutenberg-sidebar.js</code>) の UI 文字列全般 (パネルタイトル、プレースホルダ、アイコン等)</li>
-            <li>パネルデザイン選択肢のラベル (<code>admin/views/_panel-style-select.php</code>)</li>
+            <li>ブロックエディタの選択肢（画像のデザイン・出力モード・並び順）のラベル</li>
             <li>一部のインライン説明文</li>
         </ul>
         <p>他言語環境で運用したい場合、現時点では <code>load_plugin_textdomain()</code> の追加、JS 文字列の <code>wp.i18n</code> API 化、ハードコード文字列の翻訳関数化をコード側で行うフォーク対応が必要です。</p>
@@ -229,7 +230,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.2</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
     </footer>
 </main>
 

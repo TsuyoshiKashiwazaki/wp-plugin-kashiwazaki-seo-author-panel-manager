@@ -1,6 +1,6 @@
 # Kashiwazaki SEO Author Panel Manager
 
-![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0%2B-green.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple.svg)
 ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)
@@ -12,9 +12,11 @@ Person（人物）、Corporation（法人）、Organization（組織）の3種�
 - **独立したエンティティデータベース** - WordPressユーザーとは別に、Person / Corporation / Organization を個別管理
 - **Gutenbergブロック対応** - ブロックエディタから挿入・設定・プレビューが可能
 - **Schema.org JSON-LD出力** - `Person`、`Corporation`、`Organization` の構造化データをGoogleリッチリザルト仕様に準拠して出力
-- **Standard / Customモード** - 独立したJSON-LD出力、または他プラグイン（Yoast SEO、Rank Math等）の既存スキーマへの紐付け
+- **Standard / Custom / 出力しない** - 独立したJSON-LD出力、他プラグイン（Yoast SEO、Rank Math等）の既存スキーマへの紐付け、またはJSON-LDを出さずにパネルだけ表示
 - **エンティティごとの表示ラベル** - 記事ごとに「執筆者」「監修者」「運営会社」等のラベルをブロックエディタから個別設定
-- **5種類のパネルデザイン** - Default / Dark / Accent / Minimal / Card をエンティティごとに選択可能
+- **画像のデザイン** - 丸 / 角丸の四角 / 四角 / 楕円（縦長・横長）/ 切り抜かない を記事ごと・エンティティごとに選択
+- **並び順** - ブロックエディタのサイドバーでドラッグまたは ↑↓ ボタンでパネルの順番を変更
+- **パネルのデザインとカラー** - 形（標準 / アクセント / ミニマル / カード）と色（おまかせ / グレー / 白 / ダーク / ブルー / グリーン / オレンジ / カスタム）をエンティティごとに別々に選択。カスタムでは背景色・文字色・アクセント色を指定可能
 - **ソーシャルアイコン** - sameAs URLを自動判定してDashiconsで表示（X、Facebook、LinkedIn、GitHub、YouTube等）
 - **メディアライブラリ連携** - 画像・ロゴをWordPressメディアライブラリから選択
 - **使用記事の追跡** - 各エンティティの編集画面から、どの記事で使われているかを確認可能
@@ -39,7 +41,7 @@ Person（人物）、Corporation（法人）、Organization（組織）の3種�
 
 ### 記事への挿入
 
-ブロックエディタで「+」ボタンをクリックし、「著者」または「Kashiwazaki」で検索。**Kashiwazaki SEO Author Panel Manager** ブロックを選択し、右サイドバーでエンティティ・ラベル・モードを設定します。
+ブロックエディタで「+」ボタンをクリックし、「著者」または「Kashiwazaki」で検索。**Kashiwazaki SEO Author Panel Manager** ブロックを選択し、右サイドバーでエンティティ・ラベル・画像のデザイン・並び順・出力モードを設定します。
 
 ### ショートコード（代替手段）
 
@@ -55,17 +57,33 @@ Person（人物）、Corporation（法人）、Organization（組織）の3種�
 [author_panel persons="1" corporations="1" mode="custom" target_schema_id="https://example.com/post/#article"]
 ```
 
-CustomモードのJSON-LDは `<head>` 内に出力されます。
+CustomモードのJSON-LDは `<head>` 内に出力されます。紐付け先の `@id` が空のときは、ブロックエディタに警告が表示されます。
 
-## パネルデザイン
+### 出力しない
 
-| テーマ | 説明 |
+JSON-LDを出さずに、パネルの表示だけに使います。並び順と画像のデザインも指定できます。
+
+```
+[author_panel persons="1" corporations="1" mode="none" order="corp-1,person-1" image_styles='{"corp-1":"original"}']
+```
+
+## パネルのデザインとカラー
+
+各エンティティの編集画面で、形と色を別々に選びます。
+
+| パネルのデザイン（形） | 説明 |
 |--------|------|
-| Default | グレー背景 + 細ボーダー |
-| Dark | ダークネイビー背景 + 水色アクセント（WCAG AA準拠） |
-| Accent | 白背景 + 左カラーボーダー |
-| Minimal | 背景なし、下線のみ |
-| Card | 白背景 + シャドウ + 大きめ角丸 |
+| 標準 | 背景 + 細い枠線 |
+| アクセント | 左に太線 |
+| ミニマル | 枠なし、下線のみ |
+| カード | シャドウ + 大きめ角丸 |
+
+| パネルのカラー（色） | 説明 |
+|--------|------|
+| おまかせ | デザインごとの標準配色（既定） |
+| グレー / 白 / ブルー / グリーン / オレンジ | 明るい配色 |
+| ダーク | ダークネイビー背景 + 水色アクセント（WCAG AA準拠） |
+| カスタム | 背景色・文字色・アクセント色を指定 |
 
 ## ライセンス
 

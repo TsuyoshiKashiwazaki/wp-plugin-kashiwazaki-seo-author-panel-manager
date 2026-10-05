@@ -24,6 +24,15 @@ jQuery(function ($) {
 
         frame.open();
     });
+
+    // パネルのカラー: カスタム時だけ 3 色の入力欄を出す
+    $('.kapm-color-field').wpColorPicker();
+    var colorSelect = $('#panel_color');
+    function toggleCustomColors() {
+        $('.kapm-custom-color-row').toggle(colorSelect.val() === 'custom');
+    }
+    colorSelect.on('change', toggleCustomColors);
+    toggleCustomColors();
 });
 
 // ツールチップ（jQuery不要、即時実行）

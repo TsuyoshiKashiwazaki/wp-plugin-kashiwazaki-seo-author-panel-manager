@@ -3,6 +3,29 @@
 このプロジェクトのすべての変更はこのファイルに記録されます。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/) に基づいています。
 
+## [1.0.3] - 2026-10-05
+
+### 追加
+- ブロックエディタで、エンティティごとに **画像のデザイン** を選べるようにした（丸（標準）/ 角丸の四角 / 四角 / 楕円（縦長）/ 楕円（横長）/ 切り抜かない）。各エンティティの「表示ラベル」の下に表示。ブロック属性 `imageStyles`、ショートコード属性 `image_styles` を追加。許可された値以外は丸として扱う。
+- ブロックエディタのサイドバーに **並び順** パネルを追加。エンティティを 2 件以上選ぶと表示され、ドラッグまたは ↑↓ ボタンでパネルの表示順を変更できる。ブロック属性・ショートコード属性 `order`（例: `person-1,org-1,corp-1`）を追加。並び順に含まれないパネルは既定の順（Person → Corporation → Organization）で後ろに付く。
+- 出力モードに **出力しない（パネルの表示だけ）**（`mode="none"`）を追加。JSON-LD を出力せず HTML パネルだけを表示する。
+- Custom モードで紐付け先スキーマの `@id` が空のとき、サイドバーとブロックのプレビューに警告を表示。
+- パネルのカラーに **カスタム** を追加。背景色・文字色・アクセント色を WordPress 標準のカラーピッカーで指定でき、カードの `style` 属性に CSS 変数として出力する。
+- テーブル構造のバージョンをオプション `kapm_db_version` に記録し、`plugins_loaded` で古い構造を検出したら `dbDelta()` で不足列を追加する仕組みを追加（ファイル上書き更新でも再有効化が不要）。アンインストール時はこのオプションも削除する。
+
+### 変更
+- 「パネルデザイン」を **パネルのデザイン**（形: 標準 / アクセント / ミニマル / カード）と **パネルのカラー**（色: おまかせ / グレー / 白 / ダーク / ブルー / グリーン / オレンジ / カスタム）の 2 項目に分割。形と色が 1 つの選択肢に混在していた（Dark だけが色）ため、組み合わせを選べなかった。
+- 既定のカラー「おまかせ」は、デザインごとに v1.0.2 までと同じ配色で表示する。旧値 `panel_style = dark` は「標準 × ダーク」として読み替える（データの書き換えは不要）。
+- パネルの CSS を CSS 変数（`--kapm-bg` / `--kapm-text` / `--kapm-accent` 等）で色を受け取る構造に変更。カードに `kapm-color-*` と `kapm-image-*` のクラスを追加。
+- データベースに `panel_color` / `color_bg` / `color_text` / `color_accent` の 4 列を追加。
+
+### バグ修正
+- sameAs URL を `sanitize_textarea_field()` で保存していたため、`%E6%9F%8F` のようなパーセントエンコードが削除され、日本語を含む URL（例: LinkedIn の日本語プロフィール URL）が壊れる問題を修正。1 行ずつ `esc_url_raw()` で無害化する方式に変更。
+- Threads の新ドメイン `threads.com` の URL が汎用の Web サイトアイコンで表示される問題を修正（アイコン対応表に追加）。
+
+### 削除
+- 開発用のテストスクリプト `tests/runtime-test-v1.0.2.php` をリポジトリと配布物から削除。WordPress なしで単体実行できるスクリプトのため、プラグインフォルダに置かれると Web から直接実行できる状態になっていた。
+
 ## [1.0.2] - 2026-04-15
 
 ### セキュリティ
@@ -73,6 +96,7 @@
 - WCAG AA準拠のコントラスト比（Darkテーマ含む全デザイン）
 - uninstall.phpによるアンインストール時テーブル削除
 
+[1.0.3]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.3
 [1.0.2]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.2
 [1.0.1]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.1
 [1.0.0]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.0

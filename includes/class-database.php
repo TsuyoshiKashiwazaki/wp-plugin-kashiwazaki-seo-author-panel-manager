@@ -25,8 +25,12 @@ class KAPM_Database {
                         'bio'         => array( 'type' => 'textarea', 'default' => '' ),
                         'image_url'   => array( 'type' => 'url',      'default' => '' ),
                         'url'         => array( 'type' => 'url',      'default' => '' ),
-                        'same_as'     => array( 'type' => 'textarea', 'default' => '' ),
+                        'same_as'     => array( 'type' => 'url_list', 'default' => '' ),
                         'panel_style' => array( 'type' => 'text',     'default' => 'default' ),
+                        'panel_color' => array( 'type' => 'text',     'default' => 'auto' ),
+                        'color_bg'    => array( 'type' => 'color',    'default' => '' ),
+                        'color_text'  => array( 'type' => 'color',    'default' => '' ),
+                        'color_accent' => array( 'type' => 'color', 'default' => '' ),
                     ),
                 ),
                 'corporation' => array(
@@ -40,8 +44,12 @@ class KAPM_Database {
                         'description' => array( 'type' => 'textarea', 'default' => '' ),
                         'url'         => array( 'type' => 'url',      'default' => '' ),
                         'logo_url'    => array( 'type' => 'url',      'default' => '' ),
-                        'same_as'     => array( 'type' => 'textarea', 'default' => '' ),
+                        'same_as'     => array( 'type' => 'url_list', 'default' => '' ),
                         'panel_style' => array( 'type' => 'text',     'default' => 'default' ),
+                        'panel_color' => array( 'type' => 'text',     'default' => 'auto' ),
+                        'color_bg'    => array( 'type' => 'color',    'default' => '' ),
+                        'color_text'  => array( 'type' => 'color',    'default' => '' ),
+                        'color_accent' => array( 'type' => 'color', 'default' => '' ),
                     ),
                 ),
                 'organization' => array(
@@ -55,8 +63,12 @@ class KAPM_Database {
                         'description' => array( 'type' => 'textarea', 'default' => '' ),
                         'url'         => array( 'type' => 'url',      'default' => '' ),
                         'logo_url'    => array( 'type' => 'url',      'default' => '' ),
-                        'same_as'     => array( 'type' => 'textarea', 'default' => '' ),
+                        'same_as'     => array( 'type' => 'url_list', 'default' => '' ),
                         'panel_style' => array( 'type' => 'text',     'default' => 'default' ),
+                        'panel_color' => array( 'type' => 'text',     'default' => 'auto' ),
+                        'color_bg'    => array( 'type' => 'color',    'default' => '' ),
+                        'color_text'  => array( 'type' => 'color',    'default' => '' ),
+                        'color_accent' => array( 'type' => 'color', 'default' => '' ),
                     ),
                 ),
             );
@@ -103,6 +115,10 @@ class KAPM_Database {
             url varchar(2083) NOT NULL DEFAULT '',
             same_as text NOT NULL,
             panel_style varchar(50) NOT NULL DEFAULT 'default',
+            panel_color varchar(50) NOT NULL DEFAULT 'auto',
+            color_bg varchar(7) NOT NULL DEFAULT '',
+            color_text varchar(7) NOT NULL DEFAULT '',
+            color_accent varchar(7) NOT NULL DEFAULT '',
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         ) {$charset_collate};";
@@ -117,6 +133,10 @@ class KAPM_Database {
             logo_url varchar(2083) NOT NULL DEFAULT '',
             same_as text NOT NULL,
             panel_style varchar(50) NOT NULL DEFAULT 'default',
+            panel_color varchar(50) NOT NULL DEFAULT 'auto',
+            color_bg varchar(7) NOT NULL DEFAULT '',
+            color_text varchar(7) NOT NULL DEFAULT '',
+            color_accent varchar(7) NOT NULL DEFAULT '',
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         ) {$charset_collate};";
@@ -131,6 +151,10 @@ class KAPM_Database {
             logo_url varchar(2083) NOT NULL DEFAULT '',
             same_as text NOT NULL,
             panel_style varchar(50) NOT NULL DEFAULT 'default',
+            panel_color varchar(50) NOT NULL DEFAULT 'auto',
+            color_bg varchar(7) NOT NULL DEFAULT '',
+            color_text varchar(7) NOT NULL DEFAULT '',
+            color_accent varchar(7) NOT NULL DEFAULT '',
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         ) {$charset_collate};";
@@ -139,6 +163,88 @@ class KAPM_Database {
         dbDelta( $sql_persons );
         dbDelta( $sql_corporations );
         dbDelta( $sql_organizations );
+
+        update_option( 'kapm_db_version', KAPM_DB_VERSION );
+    }
+
+    /**
+     * 1 行 1 URL のリスト（sameAs）を無害化する
+     * sanitize_textarea_field は %XX（パーセントエンコード）を削除して
+     * https://www.linkedin.com/in/%E6%9F%8F... のような URL を壊すため、1 行ずつ esc_url_raw に掛ける
+     */
+    public static function sanitize_url_list( string $text ): string {
+        $urls = array();
+        foreach ( preg_split( '/\R/', $text ) as $line ) {
+            $url = esc_url_raw( trim( $line ) );
+            if ( $url !== '' ) {
+                $urls[] = $url;
+            }
+        }
+        return implode( "\n", $urls );
+    }
+
+    /**
+     * 有効化を経ずにファイルだけ更新された場合も列を追加する
+     * （dbDelta は既存テーブルに無い列を ALTER TABLE ... ADD COLUMN で足す）
+     */
+    public static function maybe_upgrade(): void {
+        if ( get_option( 'kapm_db_version' ) !== KAPM_DB_VERSION ) {
+            self::create_tables();
+        }
+    }
+
+    /**
+     * パネルのデザイン（型）。値 => 管理画面の表示名
+     * 旧 'dark' はデザインとカラーが混ざっていたため、normalize_panel_appearance() で
+     * デザイン 'default' + カラー 'dark' に読み替える
+     */
+    public static function get_panel_designs(): array {
+        return array(
+            'default' => __( '標準（枠線）', 'kashiwazaki-seo-author-panel-manager' ),
+            'accent'  => __( 'アクセント（左に太線）', 'kashiwazaki-seo-author-panel-manager' ),
+            'minimal' => __( 'ミニマル（下線のみ）', 'kashiwazaki-seo-author-panel-manager' ),
+            'card'    => __( 'カード（影付き）', 'kashiwazaki-seo-author-panel-manager' ),
+        );
+    }
+
+    /**
+     * パネルのカラー。値 => 管理画面の表示名
+     * 'auto' はデザインごとの従来の配色、'custom' は color_bg / color_text / color_accent を使う
+     */
+    public static function get_panel_colors(): array {
+        return array(
+            'auto'   => __( 'おまかせ（デザインに合わせる）', 'kashiwazaki-seo-author-panel-manager' ),
+            'gray'   => __( 'グレー', 'kashiwazaki-seo-author-panel-manager' ),
+            'white'  => __( '白', 'kashiwazaki-seo-author-panel-manager' ),
+            'dark'   => __( 'ダーク', 'kashiwazaki-seo-author-panel-manager' ),
+            'blue'   => __( 'ブルー', 'kashiwazaki-seo-author-panel-manager' ),
+            'green'  => __( 'グリーン', 'kashiwazaki-seo-author-panel-manager' ),
+            'orange' => __( 'オレンジ', 'kashiwazaki-seo-author-panel-manager' ),
+            'custom' => __( 'カスタム（色を指定）', 'kashiwazaki-seo-author-panel-manager' ),
+        );
+    }
+
+    /**
+     * 保存値からデザインとカラーを確定する（旧 'dark'・未知の値の読み替えを 1 か所に集約）
+     *
+     * @return array{design: string, color: string}
+     */
+    public static function normalize_panel_appearance( array $entity ): array {
+        $design = (string) ( $entity['panel_style'] ?? 'default' );
+        $color  = (string) ( $entity['panel_color'] ?? 'auto' );
+        if ( $design === 'dark' ) {
+            $design = 'default';
+            if ( $color === 'auto' || $color === '' ) {
+                $color = 'dark';
+            }
+        }
+        if ( ! array_key_exists( $design, self::get_panel_designs() ) ) {
+            $design = 'default';
+        }
+        if ( ! array_key_exists( $color, self::get_panel_colors() ) ) {
+            $color = 'auto';
+        }
+        return array( 'design' => $design, 'color' => $color );
     }
 
     // =========================================================================
@@ -212,6 +318,13 @@ class KAPM_Database {
                     break;
                 case 'textarea':
                     $values[ $field ] = sanitize_textarea_field( (string) $raw );
+                    break;
+                case 'url_list':
+                    $values[ $field ] = self::sanitize_url_list( (string) $raw );
+                    break;
+                case 'color':
+                    // #rgb / #rrggbb 以外は空文字（sanitize_hex_color は不正値で null を返す）
+                    $values[ $field ] = (string) sanitize_hex_color( (string) $raw );
                     break;
                 case 'text':
                 default:

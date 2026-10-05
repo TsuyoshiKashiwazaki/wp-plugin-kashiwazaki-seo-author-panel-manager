@@ -84,6 +84,7 @@ class KAPM_Admin {
         );
 
         wp_enqueue_media();
+        wp_enqueue_style( 'wp-color-picker' );
 
         $js_path = KAPM_PLUGIN_PATH . 'admin/js/admin-media.js';
         $js_ver  = KAPM_VERSION;
@@ -93,7 +94,7 @@ class KAPM_Admin {
         wp_enqueue_script(
             'kapm-admin-media',
             KAPM_PLUGIN_URL . 'admin/js/admin-media.js',
-            array( 'jquery' ),
+            array( 'jquery', 'wp-color-picker' ),
             $js_ver,
             true
         );
@@ -228,9 +229,9 @@ class KAPM_Admin {
                 'bio'         => isset( $_POST['bio'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bio'] ) ) : '',
                 'image_url'   => isset( $_POST['image_url'] ) ? esc_url_raw( wp_unslash( $_POST['image_url'] ) ) : '',
                 'url'         => isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '',
-                'same_as'     => isset( $_POST['same_as'] ) ? sanitize_textarea_field( wp_unslash( $_POST['same_as'] ) ) : '',
+                'same_as'     => isset( $_POST['same_as'] ) ? KAPM_Database::sanitize_url_list( wp_unslash( $_POST['same_as'] ) ) : '',
                 'panel_style' => isset( $_POST['panel_style'] ) ? sanitize_text_field( wp_unslash( $_POST['panel_style'] ) ) : 'default',
-            );
+            ) + $this->collect_panel_color_data();
         }
 
         // corporation / organization
@@ -241,8 +242,22 @@ class KAPM_Admin {
             'description' => isset( $_POST['description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['description'] ) ) : '',
             'url'         => isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '',
             'logo_url'    => isset( $_POST['logo_url'] ) ? esc_url_raw( wp_unslash( $_POST['logo_url'] ) ) : '',
-            'same_as'     => isset( $_POST['same_as'] ) ? sanitize_textarea_field( wp_unslash( $_POST['same_as'] ) ) : '',
+            'same_as'     => isset( $_POST['same_as'] ) ? KAPM_Database::sanitize_url_list( wp_unslash( $_POST['same_as'] ) ) : '',
             'panel_style' => isset( $_POST['panel_style'] ) ? sanitize_text_field( wp_unslash( $_POST['panel_style'] ) ) : 'default',
+        ) + $this->collect_panel_color_data();
+    }
+
+    /**
+     * パネルのカラー（プリセット名とカスタム 3 色）を POST から抽出
+     * 色は KAPM_Database::prepare_field_values() で sanitize_hex_color により再検証される
+     */
+    private function collect_panel_color_data(): array {
+        $data = array(
+            'panel_color' => isset( $_POST['panel_color'] ) ? sanitize_key( wp_unslash( $_POST['panel_color'] ) ) : 'auto',
         );
+        foreach ( array( 'color_bg', 'color_text', 'color_accent' ) as $field ) {
+            $data[ $field ] = isset( $_POST[ $field ] ) ? (string) sanitize_hex_color( sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) ) : '';
+        }
+        return $data;
     }
 }

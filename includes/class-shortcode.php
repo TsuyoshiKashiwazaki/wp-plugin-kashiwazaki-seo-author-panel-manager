@@ -21,6 +21,20 @@ class KAPM_Shortcode {
      */
     private const JSON_ENCODE_FLAGS = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PRETTY_PRINT;
 
+    /**
+     * 画像のデザイン（エンティティごとに選択）と <img> の width / height
+     * height が 0 のものは高さ属性を出さず、元画像の縦横比のまま表示する
+     * 未指定・未知の値は 'circle'（従来の表示）にフォールバック
+     */
+    private const IMAGE_STYLES = array(
+        'circle'    => array( 80, 80 ),
+        'rounded'   => array( 80, 80 ),
+        'square'    => array( 80, 80 ),
+        'ellipse-v' => array( 72, 96 ),
+        'ellipse-h' => array( 104, 72 ),
+        'original'  => array( 80, 0 ),
+    );
+
     public function __construct() {
         add_shortcode( 'author_panel', array( $this, 'render' ) );
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
@@ -199,6 +213,8 @@ class KAPM_Shortcode {
             'mode'             => 'standard',
             'target_schema_id' => '',
             'labels'           => '{}',
+            'image_styles'     => '{}',
+            'order'            => '',
         ), $atts, 'author_panel' );
 
         $person_ids = $this->parse_ids( $atts['persons'] );
@@ -228,7 +244,18 @@ class KAPM_Shortcode {
             $labels[ $key ] = is_scalar( $value ) ? (string) $value : '';
         }
 
-        $html = $this->build_html( $persons, $corporations, $organizations, $labels );
+        // 画像のデザイン: 許可リストにある値だけを残す（それ以外は build_entity_card で circle 扱い）
+        $decoded_image_styles = json_decode( (string) $atts['image_styles'], true );
+        $image_styles         = array();
+        if ( is_array( $decoded_image_styles ) ) {
+            foreach ( $decoded_image_styles as $key => $value ) {
+                if ( is_scalar( $value ) && isset( self::IMAGE_STYLES[ (string) $value ] ) ) {
+                    $image_styles[ $key ] = (string) $value;
+                }
+            }
+        }
+
+        $html = $this->build_html( $persons, $corporations, $organizations, $labels, $image_styles, $this->parse_order( (string) $atts['order'] ) );
 
         if ( $atts['mode'] === 'standard' ) {
             $json_ld = $this->build_standard_json_ld( $persons, $corporations, $organizations );
@@ -263,6 +290,20 @@ class KAPM_Shortcode {
         return array_values( array_unique( $ids ) );
     }
 
+    /**
+     * 並び順（"corp-1,person-1,org-2" 形式）を検証済みのキー配列にする
+     */
+    private function parse_order( string $str ): array {
+        $keys = array();
+        foreach ( explode( ',', $str ) as $part ) {
+            $part = trim( $part );
+            if ( preg_match( '/^(person|corp|org)-[1-9][0-9]*$/', $part ) ) {
+                $keys[] = $part;
+            }
+        }
+        return array_values( array_unique( $keys ) );
+    }
+
     private function fetch_entities( array $ids, string $type ): array {
         $results = array();
         foreach ( $ids as $id ) {
@@ -279,17 +320,29 @@ class KAPM_Shortcode {
     // HTML 組み立てを entity card 単位に分割
     // =========================================================================
 
-    private function build_html( array $persons, array $corporations, array $organizations, array $labels = array() ): string {
+    private function build_html( array $persons, array $corporations, array $organizations, array $labels = array(), array $image_styles = array(), array $order = array() ): string {
+        // 既定の並び（Person → Corporation → Organization）。キーは labels と同じ person-1 / corp-1 / org-1
+        $cards = array();
+        foreach ( array( 'person' => $persons, 'corporation' => $corporations, 'organization' => $organizations ) as $type => $entities ) {
+            $prefix = $type === 'person' ? 'person' : ( $type === 'corporation' ? 'corp' : 'org' );
+            foreach ( $entities as $entity ) {
+                $cards[ $prefix . '-' . ( $entity['id'] ?? 0 ) ] = array( $type, $entity );
+            }
+        }
+
+        // 並び順の指定があれば、その順に並べ替える（指定に無いカードは既定の並びのまま後ろに付ける）
+        $sorted = array();
+        foreach ( $order as $key ) {
+            if ( isset( $cards[ $key ] ) ) {
+                $sorted[ $key ] = $cards[ $key ];
+            }
+        }
+        $cards = $sorted + $cards;
+
         ob_start();
         echo '<div class="kapm-author-panel">';
-        foreach ( $persons as $p ) {
-            echo $this->build_entity_card( 'person', $p, $labels );
-        }
-        foreach ( $corporations as $c ) {
-            echo $this->build_entity_card( 'corporation', $c, $labels );
-        }
-        foreach ( $organizations as $o ) {
-            echo $this->build_entity_card( 'organization', $o, $labels );
+        foreach ( $cards as $card ) {
+            echo $this->build_entity_card( $card[0], $card[1], $labels, $image_styles );
         }
         echo '</div>';
         return ob_get_clean();
@@ -299,29 +352,38 @@ class KAPM_Shortcode {
      * 1 エンティティのカード HTML を構築
      * 全フィールドは esc_html / esc_attr / esc_url で個別にエスケープ
      */
-    private function build_entity_card( string $type, array $entity, array $labels ): string {
+    private function build_entity_card( string $type, array $entity, array $labels, array $image_styles = array() ): string {
         $type_class = $type === 'person' ? 'kapm-person' : ( $type === 'corporation' ? 'kapm-corporation' : 'kapm-organization' );
         $label_key_prefix = $type === 'person' ? 'person' : ( $type === 'corporation' ? 'corp' : 'org' );
         $label_key  = $label_key_prefix . '-' . ( $entity['id'] ?? 0 );
         $label_text = $labels[ $label_key ] ?? '';
+
+        $image_style = $image_styles[ $label_key ] ?? 'circle';
+        if ( ! isset( self::IMAGE_STYLES[ $image_style ] ) ) {
+            $image_style = 'circle';
+        }
+        list( $image_width, $image_height ) = self::IMAGE_STYLES[ $image_style ];
 
         // Person は image_url と bio、Corp/Org は logo_url と description を使う
         $image_url   = $type === 'person' ? ( $entity['image_url'] ?? '' ) : ( $entity['logo_url'] ?? '' );
         $description = $type === 'person' ? ( $entity['bio'] ?? '' ) : ( $entity['description'] ?? '' );
         $job_title   = $type === 'person' ? ( $entity['job_title'] ?? '' ) : '';
 
-        $panel_style = $entity['panel_style'] ?? 'default';
+        $appearance  = KAPM_Database::normalize_panel_appearance( $entity );
+        $panel_style = $appearance['design'];
+        $panel_color = $appearance['color'];
+        $color_vars  = $panel_color === 'custom' ? $this->build_custom_color_vars( $entity ) : '';
         $name        = $entity['name'] ?? '';
         $name_en     = $entity['name_en'] ?? '';
         $url         = $entity['url'] ?? '';
 
         ob_start();
         ?>
-        <div class="kapm-author-card <?php echo esc_attr( $type_class ); ?> kapm-style-<?php echo esc_attr( $panel_style ); ?>">
+        <div class="kapm-author-card <?php echo esc_attr( $type_class ); ?> kapm-style-<?php echo esc_attr( $panel_style ); ?> kapm-color-<?php echo esc_attr( $panel_color ); ?> kapm-image-<?php echo esc_attr( $image_style ); ?>"<?php if ( $color_vars !== '' ) : ?> style="<?php echo esc_attr( $color_vars ); ?>"<?php endif; ?>>
             <div class="kapm-author-image-wrap">
                 <?php if ( $image_url !== '' ) : ?>
                     <div class="kapm-author-image">
-                        <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $name ); ?>" width="80" height="80" loading="lazy">
+                        <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $name ); ?>" width="<?php echo (int) $image_width; ?>"<?php if ( $image_height > 0 ) : ?> height="<?php echo (int) $image_height; ?>"<?php endif; ?> loading="lazy">
                     </div>
                 <?php endif; ?>
                 <?php if ( $label_text !== '' ) : ?>
@@ -354,6 +416,30 @@ class KAPM_Shortcode {
         </div>
         <?php
         return (string) ob_get_clean();
+    }
+
+    /**
+     * カラー「カスタム」の CSS 変数（style 属性用）
+     * 値は保存時と同じく sanitize_hex_color で再検証し、空・不正な色は出力しない
+     * （出力しなかった変数は panel-style.css の .kapm-color-custom の既定値になる）
+     */
+    private function build_custom_color_vars( array $entity ): string {
+        $map  = array(
+            'color_bg'     => array( '--kapm-bg' ),
+            'color_text'   => array( '--kapm-text', '--kapm-name' ),
+            'color_accent' => array( '--kapm-accent' ),
+        );
+        $vars = array();
+        foreach ( $map as $field => $props ) {
+            $color = (string) sanitize_hex_color( (string) ( $entity[ $field ] ?? '' ) );
+            if ( $color === '' ) {
+                continue;
+            }
+            foreach ( $props as $prop ) {
+                $vars[] = $prop . ':' . $color;
+            }
+        }
+        return implode( ';', $vars );
     }
 
     // =========================================================================
@@ -616,6 +702,7 @@ class KAPM_Shortcode {
             'zenn.dev'           => 'dashicons-lightbulb',
             'tiktok.com'         => 'dashicons-format-video',
             'threads.net'        => 'dashicons-format-status',
+            'threads.com'        => 'dashicons-format-status',
             'bsky.app'           => 'dashicons-share',
             'mastodon.'          => 'dashicons-share',
             'scholar.google.'    => 'dashicons-welcome-learn-more',

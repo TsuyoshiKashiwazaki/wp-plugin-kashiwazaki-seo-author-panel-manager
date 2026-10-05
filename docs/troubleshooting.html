@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.2</span>
+        <span class="version">v1.0.3</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -69,7 +69,7 @@
         <tbody>
             <tr>
                 <td><code>target_schema_id</code>（ブロックでは <code>targetSchemaId</code>）が空</td>
-                <td>Custom モードでこれが空だと、Custom JSON-LD は一切出力されません（HTML パネルは出ます）。</td>
+                <td>Custom モードでこれが空だと、Custom JSON-LD は一切出力されません（HTML パネルは出ます）。v1.0.3 からは、ブロックエディタのサイドバーとブロックのプレビューに黄色・赤字の警告が出ます。</td>
             </tr>
             <tr>
                 <td>ページが <code>is_singular()</code> でない</td>
@@ -90,6 +90,16 @@
         <div class="callout-title">出力先の確認方法</div>
         <p>Custom モードの JSON-LD は <code>&lt;head&gt;</code> 内に <code>wp_head</code> の priority 99 で出力されます。ページソースで <code>&lt;!-- Kashiwazaki SEO Author Panel Manager - Custom Mode JSON-LD --&gt;</code> というコメントを検索すると、本プラグインが出力した JSON-LD 部分を特定できます。Standard モード側のコメントは <code>Standard Mode JSON-LD</code> です。</p>
     </div>
+
+    <h3 id="no-jsonld">構造化データを出さずにパネルだけ表示したい</h3>
+
+    <p>別のプラグインやテーマが同じ人物・組織の構造化データをすでに出している場合など、本プラグインの JSON-LD が不要なときは、ブロックの出力モードで <strong>出力しない（パネルの表示だけ）</strong> を選んでください（ショートコードでは <code>mode="none"</code>。v1.0.3 で追加）。HTML パネルだけが表示され、JSON-LD は Standard・Custom とも出力されません。</p>
+
+    <h3 id="sameas-percent">sameAs の URL の一部が消えて保存される（v1.0.2 以前）</h3>
+
+    <p><strong>原因:</strong> v1.0.2 までは sameAs を <code>sanitize_textarea_field()</code> で保存していたため、<code>%E6%9F%8F</code> のようなパーセントエンコードが削除されていました。たとえば <code>https://www.linkedin.com/in/%E6%9F%8F%E5%B4%8E%E5%89%9B/</code> が <code>https://www.linkedin.com/in//</code> になります。</p>
+
+    <p><strong>対処:</strong> v1.0.3 で 1 行ずつ <code>esc_url_raw()</code> に掛ける方式に直しました。v1.0.2 以前に保存した sameAs に壊れた URL が残っている場合は、v1.0.3 に更新したうえで、該当エンティティの編集画面で正しい URL を入れ直して保存してください。</p>
 
     <h3 id="rest-api-issue">ブロックエディタに登録済みエンティティが表示されない</h3>
 
@@ -150,13 +160,13 @@
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>テーマの <code>style.css</code> や Customizer の追加 CSS で、<code>.kapm-author-panel</code> 配下のセレクタを明示的に override して調整してください。</p>
+            <p>テーマの <code>style.css</code> や Customizer の追加 CSS で、<code>.kapm-author-panel</code> 配下のセレクタを明示的に override して調整してください。色だけを変えたい場合は、カードの CSS 変数（例: <code>.kapm-author-card { --kapm-accent: #c00; }</code>）を上書きするのが簡単です。まずは管理画面の「パネルのカラー」（カスタム）で足りないか確認してください。</p>
         </div>
     </div>
 
     <h3>sameAs のアイコンが汎用 Web アイコンになる</h3>
 
-    <p><strong>原因:</strong> 入力された URL のホスト名が 44 ドメインのマッピングのどれにも一致していないか、URL が <code>FILTER_VALIDATE_URL</code> を通過していない。</p>
+    <p><strong>原因:</strong> 入力された URL のホスト名が 45 ドメインのマッピングのどれにも一致していないか、URL が <code>FILTER_VALIDATE_URL</code> を通過していない。</p>
 
     <div class="step">
         <div class="step-number">1</div>
@@ -167,13 +177,13 @@
     <div class="step">
         <div class="step-number">2</div>
         <div class="step-body">
-            <p>マッピングに含まれるドメインは <a href="shortcode-block.html">ショートコード＆ブロックページの sameAs 44 ドメイン一覧</a>で確認できます。該当しないサービスの場合、汎用 <code>dashicons-admin-site</code>（地球儀アイコン）にフォールバックするのが仕様です。</p>
+            <p>マッピングに含まれるドメインは <a href="shortcode-block.html">ショートコード＆ブロックページの sameAs 45 ドメイン一覧</a>で確認できます。Threads の新しいドメイン <code>threads.com</code> は v1.0.3 で追加しました（v1.0.2 までは <code>threads.net</code> のみ対応）。該当しないサービスの場合、汎用 <code>dashicons-admin-site</code>（地球儀アイコン）にフォールバックするのが仕様です。</p>
         </div>
     </div>
 
     <h2 id="db-schema">技術仕様: データベーススキーマ</h2>
 
-    <p>プラグイン有効化時に <code>KAPM_Database::create_tables()</code> が <code>dbDelta()</code> で 3 テーブルを生成します。以下は <code>class-database.php</code> の実定義に基づく完全なカラム一覧です。<code>{prefix}</code> は WordPress の <code>$wpdb-&gt;prefix</code>（通常 <code>wp_</code>）に置換されます。</p>
+    <p>プラグイン有効化時に <code>KAPM_Database::create_tables()</code> が <code>dbDelta()</code> で 3 テーブルを生成します。v1.0.3 からはテーブル構造のバージョンをオプション <code>kapm_db_version</code> に記録し、ファイルの上書き更新後も <code>plugins_loaded</code> で古い構造を検出して足りない列を追加します（v1.0.3 で追加した 4 列はテーブルの末尾に付きます）。以下は <code>class-database.php</code> の実定義に基づく完全なカラム一覧です。<code>{prefix}</code> は WordPress の <code>$wpdb-&gt;prefix</code>（通常 <code>wp_</code>）に置換されます。</p>
 
     <h3><code>{prefix}apm_persons</code> テーブル</h3>
     <table>
@@ -196,8 +206,12 @@
             <tr><td><code>image_url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>プロフィール画像 URL</td></tr>
             <tr><td><code>url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>個人サイト URL</td></tr>
             <tr><td><code>same_as</code></td><td><code>text</code></td><td>NOT NULL</td><td>（空文字）</td><td>sameAs URL 群（1 行 1 URL）</td></tr>
-            <tr><td><code>panel_style</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'default'</code></td><td>パネルデザイン識別子</td></tr>
+            <tr><td><code>panel_style</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'default'</code></td><td>パネルのデザイン（<code>default</code> / <code>accent</code> / <code>minimal</code> / <code>card</code>。旧値 <code>dark</code> は表示時に標準＋ダークへ読み替え）</td></tr>
             <tr><td><code>created_at</code></td><td><code>datetime</code></td><td>NOT NULL</td><td><code>CURRENT_TIMESTAMP</code></td><td>作成日時</td></tr>
+            <tr><td><code>panel_color</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'auto'</code></td><td>パネルのカラー（v1.0.3 で追加）</td></tr>
+            <tr><td><code>color_bg</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムの背景色（<code>#rrggbb</code>。v1.0.3 で追加）</td></tr>
+            <tr><td><code>color_text</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムの文字色（v1.0.3 で追加）</td></tr>
+            <tr><td><code>color_accent</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムのアクセント色（v1.0.3 で追加）</td></tr>
         </tbody>
     </table>
 
@@ -221,14 +235,18 @@
             <tr><td><code>url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>公式サイト URL</td></tr>
             <tr><td><code>logo_url</code></td><td><code>varchar(2083)</code></td><td>NOT NULL</td><td><code>''</code></td><td>ロゴ画像 URL</td></tr>
             <tr><td><code>same_as</code></td><td><code>text</code></td><td>NOT NULL</td><td>（空文字）</td><td>sameAs URL 群</td></tr>
-            <tr><td><code>panel_style</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'default'</code></td><td>パネルデザイン識別子</td></tr>
+            <tr><td><code>panel_style</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'default'</code></td><td>パネルのデザイン（<code>default</code> / <code>accent</code> / <code>minimal</code> / <code>card</code>。旧値 <code>dark</code> は表示時に標準＋ダークへ読み替え）</td></tr>
             <tr><td><code>created_at</code></td><td><code>datetime</code></td><td>NOT NULL</td><td><code>CURRENT_TIMESTAMP</code></td><td>作成日時</td></tr>
+            <tr><td><code>panel_color</code></td><td><code>varchar(50)</code></td><td>NOT NULL</td><td><code>'auto'</code></td><td>パネルのカラー（v1.0.3 で追加）</td></tr>
+            <tr><td><code>color_bg</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムの背景色（<code>#rrggbb</code>。v1.0.3 で追加）</td></tr>
+            <tr><td><code>color_text</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムの文字色（v1.0.3 で追加）</td></tr>
+            <tr><td><code>color_accent</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムのアクセント色（v1.0.3 で追加）</td></tr>
         </tbody>
     </table>
 
     <h3><code>{prefix}apm_organizations</code> テーブル</h3>
 
-    <p>カラム構成は <code>apm_corporations</code> と完全同一（同じ 10 カラム）ですが、別テーブルに保存されます。JSON-LD では <code>Organization</code> 型、<code>apm_corporations</code> は <code>Corporation</code> 型として出力される点だけが異なります。</p>
+    <p>カラム構成は <code>apm_corporations</code> と完全同一（同じ 14 カラム）ですが、別テーブルに保存されます。JSON-LD では <code>Organization</code> 型、<code>apm_corporations</code> は <code>Corporation</code> 型として出力される点だけが異なります。</p>
 
     <div class="callout callout-note">
         <div class="callout-title">インデックス戦略</div>
@@ -253,13 +271,13 @@
                 <td><code>/wp-json/kapm/v1/persons</code></td>
                 <td>GET</td>
                 <td><code>edit_posts</code></td>
-                <td><code>{prefix}apm_persons</code> 全行を <code>id</code> 昇順で配列返却。各行は <code>id</code>, <code>name</code>, <code>name_en</code>, <code>role</code>, <code>job_title</code>, <code>bio</code>, <code>image_url</code>, <code>url</code>, <code>same_as</code>, <code>panel_style</code>, <code>created_at</code> の 11 キー。</td>
+                <td><code>{prefix}apm_persons</code> 全行を <code>id</code> 昇順で配列返却。各行は <code>id</code>, <code>name</code>, <code>name_en</code>, <code>role</code> の 4 キーのみ（紹介文・URL・画像などはエディタに不要なため返しません）。</td>
             </tr>
             <tr>
                 <td><code>/wp-json/kapm/v1/corporations</code></td>
                 <td>GET</td>
                 <td><code>edit_posts</code></td>
-                <td><code>{prefix}apm_corporations</code> 全行。各行は <code>id</code>, <code>name</code>, <code>name_en</code>, <code>role</code>, <code>description</code>, <code>url</code>, <code>logo_url</code>, <code>same_as</code>, <code>panel_style</code>, <code>created_at</code> の 10 キー。</td>
+                <td><code>{prefix}apm_corporations</code> 全行。各行は <code>id</code>, <code>name</code>, <code>name_en</code>, <code>role</code> の 4 キーのみ。</td>
             </tr>
             <tr>
                 <td><code>/wp-json/kapm/v1/organizations</code></td>
@@ -272,7 +290,7 @@
 
     <div class="callout callout-note">
         <div class="callout-title">認証方式</div>
-        <p>エディタからの呼び出しでは、リクエストに <code>X-WP-Nonce: {wp_rest nonce}</code> ヘッダーを付与することで WordPress の Cookie 認証が適用されます。nonce は <code>enqueue_block_editor_assets</code> フックで <code>wp_create_nonce('wp_rest')</code> を使って <code>kapmData.nonce</code> に注入されています。権限チェックは各ルートの <code>permission_callback</code> で <code>current_user_can('edit_posts')</code> を実行。</p>
+        <p>エディタからの呼び出しでは、リクエストに <code>X-WP-Nonce: {wp_rest nonce}</code> ヘッダーを付与することで WordPress の Cookie 認証が適用されます。nonce は <code>enqueue_block_editor_assets</code> フックで <code>wp_create_nonce('wp_rest')</code> を使って <code>kapmData.nonce</code> に注入されています。権限チェックは各ルートの <code>permission_callback</code> で <code>current_user_can('edit_posts')</code> を実行。返すフィールドは <code>KAPM_Gutenberg::REST_PUBLIC_FIELDS</code>（<code>id</code> / <code>name</code> / <code>name_en</code> / <code>role</code>）に絞られています。</p>
     </div>
 
     <h2 id="nonce">技術仕様: nonce アクション名一覧</h2>
@@ -297,7 +315,7 @@
         </tbody>
     </table>
 
-    <p>これらに加え、管理画面全体は <code>current_user_can('manage_options')</code>（管理者権限）でガードされ、入力値は <code>sanitize_text_field()</code> / <code>sanitize_textarea_field()</code> / <code>esc_url_raw()</code> で保存時に無害化、出力時は <code>esc_html()</code> / <code>esc_attr()</code> / <code>esc_url()</code> でエスケープされます。</p>
+    <p>これらに加え、管理画面全体は <code>current_user_can('manage_options')</code>（管理者権限）でガードされ、入力値は <code>sanitize_text_field()</code> / <code>sanitize_textarea_field()</code> / <code>esc_url_raw()</code>（sameAs は 1 行ずつ）/ <code>sanitize_hex_color()</code>（カスタムカラー）で保存時に無害化、出力時は <code>esc_html()</code> / <code>esc_attr()</code> / <code>esc_url()</code> でエスケープされます。</p>
 
     <h2>技術仕様: 登録フック一覧</h2>
 
@@ -321,9 +339,10 @@
             <tr><td><code>template_redirect</code></td><td>action</td><td>10</td><td><code>KAPM_Shortcode::preparse_custom_mode</code>（Custom モードの先行パース）</td></tr>
             <tr><td><code>wp_head</code></td><td>action</td><td>99</td><td><code>KAPM_Shortcode::output_custom_json_ld</code>（Custom JSON-LD 出力）</td></tr>
             <tr><td><code>admin_menu</code></td><td>action</td><td>10</td><td><code>KAPM_Admin::add_menus</code>（position 81）</td></tr>
-            <tr><td><code>admin_enqueue_scripts</code></td><td>action</td><td>10</td><td><code>KAPM_Admin::enqueue_styles</code>（管理画面 CSS + media.js）</td></tr>
+            <tr><td><code>admin_enqueue_scripts</code></td><td>action</td><td>10</td><td><code>KAPM_Admin::enqueue_styles</code>（管理画面 CSS + media.js + <code>wp-color-picker</code>）</td></tr>
             <tr><td><code>plugin_action_links_{basename}</code></td><td>filter</td><td>10</td><td>プラグイン一覧に「設定」リンクを追加</td></tr>
             <tr><td><code>register_activation_hook</code></td><td>activation</td><td>-</td><td><code>KAPM_Database::create_tables</code></td></tr>
+            <tr><td><code>plugins_loaded</code></td><td>action</td><td>10</td><td><code>KAPM_Database::maybe_upgrade</code>（<code>kapm_db_version</code> が古ければ列を追加。v1.0.3 で追加）</td></tr>
         </tbody>
     </table>
 
@@ -334,11 +353,12 @@
             <tr><th style="width:35%;">項目</th><th>内容</th></tr>
         </thead>
         <tbody>
-            <tr><td>CSS ファイル</td><td><code>public/css/panel-style.css</code>（実測 <strong>4,629 バイト</strong>）</td></tr>
+            <tr><td>CSS ファイル</td><td><code>public/css/panel-style.css</code>（実測 <strong>8,042 バイト</strong>）。色は CSS 変数（<code>--kapm-bg</code> / <code>--kapm-text</code> / <code>--kapm-accent</code> など）で受け取ります</td></tr>
             <tr><td>JavaScript</td><td>フロントエンドでは一切使用しません（エディタ / 管理画面を除く）</td></tr>
             <tr><td>CSS の読み込み条件</td><td>ショートコード / ブロックが実際に <code>render()</code> された時のみ <code>wp_enqueue_style()</code></td></tr>
             <tr><td>Standard JSON-LD の出力位置</td><td>ショートコードの戻り値 HTML 末尾（本文内）</td></tr>
             <tr><td>Custom JSON-LD の出力位置</td><td><code>wp_head</code> priority 99（<code>&lt;/head&gt;</code> 直前付近）</td></tr>
+            <tr><td>出力しない（none）モード</td><td>JSON-LD を出力しません（HTML パネルのみ）</td></tr>
             <tr><td>依存スタイル</td><td><code>dashicons</code>（WP コア同梱）</td></tr>
         </tbody>
     </table>
@@ -351,6 +371,7 @@
         <pre><code>DROP TABLE IF EXISTS {prefix}apm_persons;
 DROP TABLE IF EXISTS {prefix}apm_corporations;
 DROP TABLE IF EXISTS {prefix}apm_organizations;</code></pre>
+        <p>あわせてオプション <code>kapm_db_version</code> も <code>delete_option()</code> で削除されます。</p>
         <p>なお、<strong>「無効化 (deactivate)」ではテーブルは削除されません</strong>。一時的にプラグインを止めたい場合は「無効化」を使ってください。</p>
     </div>
 
@@ -454,7 +475,7 @@ DROP TABLE IF EXISTS {prefix}apm_organizations;</code></pre>
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.2</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
     </footer>
 </main>
 

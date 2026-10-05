@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.2</span>
+        <span class="version">v1.0.3</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -68,9 +68,9 @@
 
     <p>Person タブは、記事の執筆者・レビュアー・編集者など「個人」を登録するためのタブです。ここで登録したエンティティはブロックエディタや <code>[author_panel]</code> ショートコードから Person の ID で参照され、Schema.org の <code>Person</code> 型 JSON-LD として出力されます。</p>
 
-    <div class="screenshot"><img src="images/screenshots/02-person-edit.png" alt="Person 編集画面" class="lightbox-trigger"></div>
+    <div class="screenshot"><img src="images/screenshots/02-person-edit.png" alt="Person 編集画面（パネルのデザイン・カラー・カスタムカラー）" class="lightbox-trigger"><div class="caption">Person 編集画面。下部に「パネルのデザイン」「パネルのカラー」があり、カラーを「カスタム」にすると背景色・文字色・アクセント色のカラーピッカーが表示されます</div></div>
 
-    <h3>Person の全フィールド（9 項目）</h3>
+    <h3>Person の全フィールド（13 項目）</h3>
 
     <p>Person 登録フォーム（<code>admin/views/person-form.php</code>）の全フィールドと、対応する DB カラム・型・既定値・未入力時の挙動を以下にまとめます。</p>
 
@@ -157,16 +157,34 @@
                 <td>任意</td>
                 <td><code>''</code></td>
                 <td>複数行テキスト（1 行 1 URL）</td>
-                <td>1 行ずつ <code>filter_var(FILTER_VALIDATE_URL)</code> で検証され、通過したもののみ JSON-LD の <code>sameAs</code> 配列とフロントのアイコン表示に使われます。無効な行は静かにスキップされます。</td>
+                <td>保存時は 1 行ずつ <code>esc_url_raw()</code> で URL として無害化されます（v1.0.3 から。以前の <code>sanitize_textarea_field()</code> は <code>%E6%9F%8F</code> のようなパーセントエンコードを削除し、日本語を含む LinkedIn 等の URL を壊していました）。表示時は 1 行ずつ <code>filter_var(FILTER_VALIDATE_URL)</code> で検証され、通過したもののみ JSON-LD の <code>sameAs</code> 配列とフロントのアイコン表示に使われます。無効な行は静かにスキップされます。</td>
             </tr>
             <tr>
-                <td>パネルデザイン</td>
+                <td>パネルのデザイン</td>
                 <td><code>panel_style</code></td>
                 <td><code>varchar(50)</code> NOT NULL</td>
                 <td>任意</td>
                 <td><code>'default'</code></td>
-                <td>select（5 値固定）</td>
-                <td>未指定時は <code>default</code>。選択肢は <code>default</code>／<code>dark</code>／<code>accent</code>／<code>minimal</code>／<code>card</code> の 5 種。後述「パネルデザイン」表を参照。</td>
+                <td>select（4 値固定）</td>
+                <td>未指定時は <code>default</code>。選択肢は <code>default</code>（標準）／<code>accent</code>（アクセント）／<code>minimal</code>（ミニマル）／<code>card</code>（カード）の 4 種で、形だけを決めます。後述「パネルのデザインとカラー」を参照。</td>
+            </tr>
+            <tr>
+                <td>パネルのカラー</td>
+                <td><code>panel_color</code></td>
+                <td><code>varchar(50)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'auto'</code></td>
+                <td>select（8 値固定）</td>
+                <td>未指定時は <code>auto</code>（おまかせ＝デザインごとの標準配色）。<code>custom</code> を選ぶと下の 3 色が使われます。後述「パネルのデザインとカラー」を参照（v1.0.3 で追加）。</td>
+            </tr>
+            <tr>
+                <td>背景色 / 文字色 / アクセント色</td>
+                <td><code>color_bg</code><br><code>color_text</code><br><code>color_accent</code></td>
+                <td><code>varchar(7)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>カラーピッカー（WordPress 標準の <code>wp-color-picker</code>）</td>
+                <td>カラーが「カスタム」のときだけ入力欄が表示され、使われます。<code>sanitize_hex_color()</code> で <code>#rgb</code> / <code>#rrggbb</code> 以外は空文字として保存されます。空の色は既定値（背景 <code>#ffffff</code>・文字 <code>#333333</code>・アクセント <code>#0073aa</code>）になります（v1.0.3 で追加）。</td>
             </tr>
         </tbody>
     </table>
@@ -206,7 +224,7 @@
 
     <div class="screenshot"><img src="images/screenshots/03-corporation-list.png" alt="Corporation 一覧画面" class="lightbox-trigger"></div>
 
-    <h3>Corporation の全フィールド（8 項目）</h3>
+    <h3>Corporation の全フィールド（12 項目）</h3>
 
     <p>Corporation のフォーム（<code>admin/views/corporation-form.php</code>）は Person から <code>job_title</code> / <code>bio</code> / <code>image_url</code> を取り除き、<code>description</code>（説明）と <code>logo_url</code>（ロゴ画像）に置き換えた構成になっています。</p>
 
@@ -284,16 +302,34 @@
                 <td>任意</td>
                 <td><code>''</code></td>
                 <td>複数行テキスト（1 行 1 URL）</td>
-                <td>1 行ずつ <code>FILTER_VALIDATE_URL</code> で検証し、通過行のみ JSON-LD の <code>sameAs</code> 配列へ出力されます。</td>
+                <td>保存時は 1 行ずつ <code>esc_url_raw()</code> で URL として無害化されます（v1.0.3 から。以前の <code>sanitize_textarea_field()</code> は <code>%E6%9F%8F</code> のようなパーセントエンコードを削除し、日本語を含む LinkedIn 等の URL を壊していました）。表示時は 1 行ずつ <code>FILTER_VALIDATE_URL</code> で検証し、通過行のみ JSON-LD の <code>sameAs</code> 配列へ出力されます。</td>
             </tr>
             <tr>
-                <td>パネルデザイン</td>
+                <td>パネルのデザイン</td>
                 <td><code>panel_style</code></td>
                 <td><code>varchar(50)</code> NOT NULL</td>
                 <td>任意</td>
                 <td><code>'default'</code></td>
-                <td>select（5 値固定）</td>
-                <td>選択肢は Person と共通（<code>default</code>／<code>dark</code>／<code>accent</code>／<code>minimal</code>／<code>card</code>）。</td>
+                <td>select（4 値固定）</td>
+                <td>選択肢は Person と共通（<code>default</code>／<code>accent</code>／<code>minimal</code>／<code>card</code>）。</td>
+            </tr>
+            <tr>
+                <td>パネルのカラー</td>
+                <td><code>panel_color</code></td>
+                <td><code>varchar(50)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'auto'</code></td>
+                <td>select（8 値固定）</td>
+                <td>未指定時は <code>auto</code>（おまかせ＝デザインごとの標準配色）。<code>custom</code> を選ぶと下の 3 色が使われます。後述「パネルのデザインとカラー」を参照（v1.0.3 で追加）。</td>
+            </tr>
+            <tr>
+                <td>背景色 / 文字色 / アクセント色</td>
+                <td><code>color_bg</code><br><code>color_text</code><br><code>color_accent</code></td>
+                <td><code>varchar(7)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>カラーピッカー（WordPress 標準の <code>wp-color-picker</code>）</td>
+                <td>カラーが「カスタム」のときだけ入力欄が表示され、使われます。<code>sanitize_hex_color()</code> で <code>#rgb</code> / <code>#rrggbb</code> 以外は空文字として保存されます。空の色は既定値（背景 <code>#ffffff</code>・文字 <code>#333333</code>・アクセント <code>#0073aa</code>）になります（v1.0.3 で追加）。</td>
             </tr>
         </tbody>
     </table>
@@ -325,7 +361,7 @@
 
     <div class="screenshot"><img src="images/screenshots/04-organization-list.png" alt="Organization 一覧画面" class="lightbox-trigger"></div>
 
-    <h3>Organization の全フィールド（8 項目）</h3>
+    <h3>Organization の全フィールド（12 項目）</h3>
 
     <p>Organization のフォーム（<code>admin/views/organization-form.php</code>）のカラム構成は Corporation と完全に同一ですが、独立した DB テーブル <code>{prefix}apm_organizations</code> に保存され、Schema.org の型も異なります。Corporation と混在させず、営利法人以外は必ず Organization タブで登録してください。</p>
 
@@ -402,17 +438,35 @@
                 <td><code>text</code> NOT NULL</td>
                 <td>任意</td>
                 <td><code>''</code></td>
-                <td>複数行テキスト</td>
-                <td><code>Organization.sameAs</code>（配列）</td>
+                <td>複数行テキスト（1 行 1 URL）</td>
+                <td><code>Organization.sameAs</code>（配列）。保存時は 1 行ずつ <code>esc_url_raw()</code> で無害化（v1.0.3 から）</td>
             </tr>
             <tr>
-                <td>パネルデザイン</td>
+                <td>パネルのデザイン</td>
                 <td><code>panel_style</code></td>
                 <td><code>varchar(50)</code> NOT NULL</td>
                 <td>任意</td>
                 <td><code>'default'</code></td>
-                <td>select</td>
-                <td>HTML パネルの CSS クラスに反映</td>
+                <td>select（4 値固定）</td>
+                <td>HTML パネルの CSS クラス <code>.kapm-style-*</code> に反映</td>
+            </tr>
+            <tr>
+                <td>パネルのカラー</td>
+                <td><code>panel_color</code></td>
+                <td><code>varchar(50)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>'auto'</code></td>
+                <td>select（8 値固定）</td>
+                <td>HTML パネルの CSS クラス <code>.kapm-color-*</code> に反映</td>
+            </tr>
+            <tr>
+                <td>背景色 / 文字色 / アクセント色</td>
+                <td><code>color_bg</code><br><code>color_text</code><br><code>color_accent</code></td>
+                <td><code>varchar(7)</code> NOT NULL</td>
+                <td>任意</td>
+                <td><code>''</code></td>
+                <td>カラーピッカー</td>
+                <td>カラーが「カスタム」のときだけ、カードの <code>style</code> 属性に CSS 変数として出力</td>
             </tr>
         </tbody>
     </table>
@@ -451,56 +505,81 @@
         <p>Standard モード（ページ本文の直後に独立 JSON-LD を出力する方式）では、<code>@graph</code> に Person / Corporation / Organization ノードを並べるだけで、Article 等への紐付けは行いません。そのため <code>role_to_property()</code> はショートコードの <code>mode="custom"</code> 時にのみ使われます。</p>
     </div>
 
-    <h2>パネルデザイン（panel_style）</h2>
+    <h2>パネルのデザインとカラー</h2>
 
-    <p>各エンティティには HTML パネルの見た目を決める <code>panel_style</code> を個別設定できます。CSS は <code>public/css/panel-style.css</code>（実測 <strong>4,629 バイト</strong>）に定義されており、JavaScript は使用しません。</p>
+    <p>各エンティティの HTML パネルの見た目は、<strong>「パネルのデザイン」（形）</strong>と<strong>「パネルのカラー」（色）</strong>の 2 項目で決まります。v1.0.2 までは 1 つの「パネルデザイン」に形と色（Dark）が混在していましたが、v1.0.3 で 2 項目に分けました。形と色を別々に選べるため、たとえば「カードの形でダーク」のような組み合わせも選べます。CSS は <code>public/css/panel-style.css</code> に定義されており、表示に JavaScript は使用しません。</p>
+
+    <div class="screenshot">
+        <img src="images/screenshots/08-design-color.png" alt="パネルのデザインとカラーの組み合わせ見本" class="lightbox-trigger">
+        <div class="caption">デザインとカラーの組み合わせ見本（上から 標準・アクセント・ミニマル・カード × おまかせ、標準 × ダーク、カード × ブルー、アクセント × グリーン、アクセント × オレンジ、カード × カスタム）</div>
+    </div>
+
+    <h3>パネルのデザイン（panel_style）— 形</h3>
 
     <table>
         <thead>
             <tr>
-                <th style="width:14%;">value</th>
-                <th style="width:22%;">CSS クラス</th>
-                <th style="width:30%;">見た目</th>
-                <th>用途の例</th>
+                <th style="width:16%;">管理画面の表示名</th>
+                <th style="width:12%;">value</th>
+                <th style="width:20%;">CSS クラス</th>
+                <th>形</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td><code>default</code>（既定）</td>
-                <td><code>.kapm-style-default</code></td>
-                <td>背景 <code>#f9f9f9</code>、細ボーダー <code>#e0e0e0</code>、角丸 6px</td>
-                <td>ほとんどのテーマに馴染む標準表示</td>
-            </tr>
-            <tr>
-                <td><code>dark</code></td>
-                <td><code>.kapm-style-dark</code></td>
-                <td>背景 <code>#2b2d42</code>、左アクセント <code>#8ecae6</code>、白系テキスト</td>
-                <td>ダークテーマでの表示。コメントに <code>WCAG AA 準拠</code>（背景に対し全テキスト 4.5:1 以上）と明記されています</td>
-            </tr>
-            <tr>
-                <td><code>accent</code></td>
-                <td><code>.kapm-style-accent</code></td>
-                <td>白背景、左端に 4px の <code>#0073aa</code> カラーバー、角丸なし</td>
-                <td>本文と一体化しつつ左側に存在感を持たせたい場合</td>
-            </tr>
-            <tr>
-                <td><code>minimal</code></td>
-                <td><code>.kapm-style-minimal</code></td>
-                <td>背景・ボーダー・角丸なし。下線 <code>#eee</code> のみ</td>
-                <td>装飾を極力排したい記事末尾の署名として</td>
-            </tr>
-            <tr>
-                <td><code>card</code></td>
-                <td><code>.kapm-style-card</code></td>
-                <td>白背景、10px 角丸、シャドウ <code>0 2px 12px rgba(0,0,0,.08)</code></td>
-                <td>浮き上がる「カード」として目立たせたい場合</td>
-            </tr>
+            <tr><td>標準（枠線）</td><td><code>default</code>（既定）</td><td><code>.kapm-style-default</code></td><td>背景あり、細い枠線、角丸 6px</td></tr>
+            <tr><td>アクセント（左に太線）</td><td><code>accent</code></td><td><code>.kapm-style-accent</code></td><td>枠線なし、左端に 4px のアクセント色の線、角丸なし。ラベルもアクセント色</td></tr>
+            <tr><td>ミニマル（下線のみ）</td><td><code>minimal</code></td><td><code>.kapm-style-minimal</code></td><td>枠線・角丸なし、下線のみ。カラーを指定したときは左右にも余白が付きます</td></tr>
+            <tr><td>カード（影付き）</td><td><code>card</code></td><td><code>.kapm-style-card</code></td><td>枠線なし、10px 角丸、シャドウ <code>0 2px 12px rgba(0,0,0,.08)</code>。ラベルはアクセント色の大文字表記</td></tr>
         </tbody>
     </table>
 
+    <h3>パネルのカラー（panel_color）— 色</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:22%;">管理画面の表示名</th>
+                <th style="width:12%;">value</th>
+                <th>配色</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>おまかせ（デザインに合わせる）</td><td><code>auto</code>（既定）</td><td>デザインごとの標準配色。標準＝背景 <code>#f9f9f9</code>・枠線 <code>#e0e0e0</code>、アクセント／カード＝白背景、ミニマル＝背景なし・下線 <code>#eee</code>。アクセント色は <code>#0073aa</code>。v1.0.2 までの見た目と同じです</td></tr>
+            <tr><td>グレー</td><td><code>gray</code></td><td>背景 <code>#f9f9f9</code>・枠線 <code>#e0e0e0</code>（どのデザインでも同じ配色）</td></tr>
+            <tr><td>白</td><td><code>white</code></td><td>背景 <code>#ffffff</code></td></tr>
+            <tr><td>ダーク</td><td><code>dark</code></td><td>背景 <code>#2b2d42</code>・枠線 <code>#5c6080</code>・アクセント <code>#8ecae6</code>・白系の文字。背景に対し全テキスト 4.5:1 以上（WCAG AA）</td></tr>
+            <tr><td>ブルー</td><td><code>blue</code></td><td>背景 <code>#eef5fb</code>・枠線 <code>#c5dcef</code>・アクセント <code>#0a5b8c</code></td></tr>
+            <tr><td>グリーン</td><td><code>green</code></td><td>背景 <code>#eff7f0</code>・枠線 <code>#c7e3cc</code>・アクセント <code>#2d6a35</code></td></tr>
+            <tr><td>オレンジ</td><td><code>orange</code></td><td>背景 <code>#fff6eb</code>・枠線 <code>#f3d2a8</code>・アクセント <code>#a3540a</code></td></tr>
+            <tr><td>カスタム（色を指定）</td><td><code>custom</code></td><td>背景色・文字色・アクセント色の 3 色を自分で指定します。枠線や補助の文字色は、背景色と文字色を混ぜて自動で作られます</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-note">
+        <div class="callout-title">名前の文字色</div>
+        <p>明るい配色（おまかせ・グレー・白・ブルー・グリーン・オレンジ）では、名前のリンク色はテーマの設定に従います。ダークとカスタムでは、背景に対して読めるよう、名前の色もパネル側で指定します（ダーク＝白、カスタム＝文字色）。</p>
+    </div>
+
+    <h3>カスタムカラーの指定</h3>
+
+    <p>「パネルのカラー」で <strong>カスタム（色を指定）</strong> を選ぶと、その下に <strong>背景色</strong>・<strong>文字色</strong>・<strong>アクセント色</strong> の 3 つのカラーピッカーが表示されます（ほかのカラーを選んでいる間は非表示）。指定した色は、カードの <code>style</code> 属性に CSS 変数（<code>--kapm-bg</code> / <code>--kapm-text</code> / <code>--kapm-name</code> / <code>--kapm-accent</code>）として出力されます。</p>
+
+    <ul>
+        <li><strong>背景色</strong>：パネルの背景</li>
+        <li><strong>文字色</strong>：名前・肩書き・紹介文などの文字。名前の色にも使われます</li>
+        <li><strong>アクセント色</strong>：アクセント（左の太線）やカードのラベル、SNS アイコンにマウスを重ねたときの色</li>
+    </ul>
+
+    <p>空のままにした色は既定値（背景 <code>#ffffff</code>・文字 <code>#333333</code>・アクセント <code>#0073aa</code>）になります。文字が読みにくくならないよう、背景色と文字色の明るさに十分な差をつけてください。</p>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">v1.0.2 までの「Dark」を使っていた場合</div>
+        <p>以前の保存値 <code>panel_style = dark</code> は、v1.0.3 では <strong>デザイン＝標準・カラー＝ダーク</strong> として読み替えて表示されます（データの書き換えは不要）。編集画面を開くと、この組み合わせが選ばれた状態で表示されます。以前の Dark にあった左の太線が必要な場合は、デザインを「アクセント（左に太線）」に変えてください。</p>
+    </div>
+
     <div class="callout callout-tip">
         <div class="callout-title">エンティティごとに個別設定</div>
-        <p>パネルデザインは <strong>エンティティごと</strong>に保存されます。同じ記事に Person と Corporation を並べて、それぞれ異なるデザインを適用することもできます。</p>
+        <p>デザインとカラーは <strong>エンティティごと</strong>に保存されます。同じ記事に Person と Corporation を並べて、それぞれ異なるデザイン・カラーを適用することもできます。画像の形（丸・四角・楕円など）は記事ごとにブロックで選びます（<a href="shortcode-block.html#block-sidebar">ショートコード＆ブロック</a>参照）。</p>
     </div>
 
     <h2>使用中の記事の確認</h2>
@@ -563,7 +642,7 @@
 
     <div class="callout callout-warning">
         <div class="callout-title">プラグイン削除で 3 テーブルが完全削除されます</div>
-        <p>WordPress 管理画面でプラグインを <strong>削除</strong>すると、<code>uninstall.php</code> が実行され <code>{prefix}apm_persons</code> / <code>{prefix}apm_corporations</code> / <code>{prefix}apm_organizations</code> の 3 テーブルが <code>DROP TABLE IF EXISTS</code> により完全に消去されます。<strong>無効化（deactivate）では削除されません</strong>が、削除（delete）は復元不可です。エンティティデータを保全する場合は事前に <code>wp db export</code> 等で必ずバックアップを取ってください。</p>
+        <p>WordPress 管理画面でプラグインを <strong>削除</strong>すると、<code>uninstall.php</code> が実行され <code>{prefix}apm_persons</code> / <code>{prefix}apm_corporations</code> / <code>{prefix}apm_organizations</code> の 3 テーブルが <code>DROP TABLE IF EXISTS</code> により完全に消去され、テーブル構造のバージョンを記録するオプション <code>kapm_db_version</code> も削除されます。<strong>無効化（deactivate）では削除されません</strong>が、削除（delete）は復元不可です。エンティティデータを保全する場合は事前に <code>wp db export</code> 等で必ずバックアップを取ってください。</p>
     </div>
 
     <figure class="infographic">
@@ -578,7 +657,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.2</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
     </footer>
 </main>
 

@@ -1,5 +1,7 @@
 /* ============================================
    Base
+   色はすべて CSS 変数で受け取る。既定値（下の .kapm-author-card）はグレー配色
+   デザイン（kapm-style-*）は形だけ、カラー（kapm-color-*）は変数だけを決める
    ============================================ */
 .kapm-author-panel {
     margin: 1.5em 0;
@@ -7,13 +9,25 @@
 }
 
 .kapm-author-card {
+    --kapm-bg: #f9f9f9;
+    --kapm-border: #e0e0e0;
+    --kapm-accent: #0073aa;
+    --kapm-text: #444;
+    --kapm-muted: #555;
+    --kapm-subtle: #666;
+    --kapm-icon-bg: #fff;
+    --kapm-icon-fg: #666;
+    --kapm-icon-border: #ccc;
+    --kapm-icon-hover-bg: #f0f0f0;
+    --kapm-icon-hover-fg: #333;
+    --kapm-icon-hover-border: #999;
     display: flex;
     align-items: flex-start;
     gap: 16px;
     padding: 16px 20px;
     margin-bottom: 12px;
-    background: #f9f9f9;
-    border: 1px solid #e0e0e0;
+    background: var(--kapm-bg);
+    border: 1px solid var(--kapm-border);
     border-radius: 6px;
 }
 
@@ -32,6 +46,45 @@
     display: block;
 }
 
+/* ============================================
+   画像のデザイン (kapm-image-*)
+   ブロックでエンティティごとに選択。未指定は circle（上の既定と同じ丸）
+   テーマ側の img { height: auto; } に負けないよう幅と高さを明示する
+   ============================================ */
+.kapm-image-circle .kapm-author-image img,
+.kapm-image-rounded .kapm-author-image img,
+.kapm-image-square .kapm-author-image img {
+    width: 80px;
+    height: 80px;
+}
+
+.kapm-image-rounded .kapm-author-image img {
+    border-radius: 12px;
+}
+
+.kapm-image-square .kapm-author-image img {
+    border-radius: 0;
+}
+
+.kapm-image-ellipse-v .kapm-author-image img {
+    width: 72px;
+    height: 96px;
+    border-radius: 50%;
+}
+
+.kapm-image-ellipse-h .kapm-author-image img {
+    width: 104px;
+    height: 72px;
+    border-radius: 50%;
+}
+
+.kapm-image-original .kapm-author-image img {
+    width: 80px;
+    height: auto;
+    border-radius: 0;
+    object-fit: contain;
+}
+
 .kapm-author-info {
     flex: 1;
     min-width: 0;
@@ -39,7 +92,7 @@
 
 .kapm-author-label {
     font-size: 0.7em;
-    color: #555;
+    color: var(--kapm-muted);
     letter-spacing: 0.05em;
     margin-top: 6px;
     font-weight: 600;
@@ -64,18 +117,18 @@
 .kapm-name-en {
     font-weight: 400;
     font-size: 0.85em;
-    color: #666;
+    color: var(--kapm-subtle);
 }
 
 .kapm-author-job {
     font-size: 0.9em;
-    color: #555;
+    color: var(--kapm-muted);
     margin-bottom: 4px;
 }
 
 .kapm-author-bio {
     font-size: 0.9em;
-    color: #444;
+    color: var(--kapm-text);
     line-height: 1.6;
     margin-bottom: 4px;
 }
@@ -100,21 +153,21 @@
 .kapm-icon {
     width: 26px;
     height: 26px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--kapm-icon-border);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    color: #666;
+    background: var(--kapm-icon-bg);
+    color: var(--kapm-icon-fg);
     box-sizing: border-box;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .kapm-icon:hover {
-    background: #f0f0f0;
-    color: #333;
-    border-color: #999;
+    background: var(--kapm-icon-hover-bg);
+    color: var(--kapm-icon-hover-fg);
+    border-color: var(--kapm-icon-hover-border);
 }
 
 .kapm-icon .dashicons {
@@ -130,94 +183,43 @@
    ============================================ */
 
 /* ============================================
-   Style: Default (kapm-style-default)
-   既にベーススタイルがそのまま適用される
+   パネルのデザイン (kapm-style-*) — 形だけを決める
    ============================================ */
 
-/* ============================================
-   Style: Dark
-   WCAG AA準拠: 背景#2b2d42に対し全テキスト4.5:1以上
-   ============================================ */
-.kapm-style-dark {
-    background: #2b2d42;
-    border: 1px solid #5c6080;
-    border-left: 4px solid #8ecae6;
-    color: #edf2f4;
-}
+/* Default: 背景 + 細い枠線（ベースのまま） */
 
-.kapm-style-dark .kapm-author-label {
-    color: #8ecae6;
-}
-
-.kapm-style-dark .kapm-author-name,
-.kapm-style-dark .kapm-author-name a {
-    color: #ffffff;
-}
-
-.kapm-style-dark .kapm-author-name a:hover {
-    color: #8ecae6;
-}
-
-.kapm-style-dark .kapm-name-en {
-    color: #b0b5c9;
-}
-
-.kapm-style-dark .kapm-author-job {
-    color: #d4d8e8;
-}
-
-.kapm-style-dark .kapm-author-bio {
-    color: #edf2f4;
-}
-
-.kapm-style-dark .kapm-icon {
-    background: #edf2f4;
-    border-color: #edf2f4;
-    color: #2b2d42;
-}
-
-.kapm-style-dark .kapm-icon:hover {
-    background: #8ecae6;
-    border-color: #8ecae6;
-    color: #2b2d42;
-}
-
-/* ============================================
-   Style: Accent (左ボーダー)
-   ============================================ */
+/* Accent: 左に太線 */
 .kapm-style-accent {
-    background: #fff;
     border: none;
-    border-left: 4px solid #0073aa;
+    border-left: 4px solid var(--kapm-accent);
     border-radius: 0;
     padding-left: 20px;
 }
 
 .kapm-style-accent .kapm-author-label {
-    color: #0073aa;
+    color: var(--kapm-accent);
     font-weight: 600;
 }
 
-/* ============================================
-   Style: Minimal (ボーダーなし)
-   ============================================ */
+/* Minimal: 枠なし・下線のみ */
 .kapm-style-minimal {
-    background: transparent;
     border: none;
     border-radius: 0;
     padding: 12px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--kapm-border);
 }
 
 .kapm-style-minimal:last-child {
     border-bottom: none;
 }
 
-/* ============================================
-   Style: Card (シャドウ付き)
-   ============================================ */
+/* 色を選んだミニマルは、文字が背景に埋もれないよう左右にも余白を取る */
+.kapm-style-minimal:not(.kapm-color-auto) {
+    padding: 12px 16px;
+}
+
+/* Card: 影付き・大きめの角丸 */
 .kapm-style-card {
-    background: #fff;
     border: none;
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
@@ -225,9 +227,100 @@
 }
 
 .kapm-style-card .kapm-author-label {
-    color: #0073aa;
+    color: var(--kapm-accent);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.7em;
     letter-spacing: 0.08em;
+}
+
+/* ============================================
+   パネルのカラー (kapm-color-*) — 色の変数だけを決める
+   ============================================ */
+
+/* おまかせ: デザインごとの従来の配色（Default はベースのグレー） */
+.kapm-color-auto.kapm-style-accent,
+.kapm-color-auto.kapm-style-card {
+    --kapm-bg: #fff;
+}
+
+.kapm-color-auto.kapm-style-minimal {
+    --kapm-bg: transparent;
+    --kapm-border: #eee;
+}
+
+/* グレー: ベースと同じ（明示指定用） */
+
+.kapm-color-white {
+    --kapm-bg: #fff;
+}
+
+/* 文字色は背景に対して WCAG AA (4.5:1) 以上 */
+.kapm-color-blue {
+    --kapm-bg: #eef5fb;
+    --kapm-border: #c5dcef;
+    --kapm-accent: #0a5b8c;
+}
+
+.kapm-color-green {
+    --kapm-bg: #eff7f0;
+    --kapm-border: #c7e3cc;
+    --kapm-accent: #2d6a35;
+}
+
+.kapm-color-orange {
+    --kapm-bg: #fff6eb;
+    --kapm-border: #f3d2a8;
+    --kapm-accent: #a3540a;
+}
+
+/* Dark: 背景 #2b2d42 に対し全テキスト 4.5:1 以上（旧 Dark デザインの配色） */
+.kapm-color-dark {
+    --kapm-bg: #2b2d42;
+    --kapm-border: #5c6080;
+    --kapm-accent: #8ecae6;
+    --kapm-name: #fff;
+    --kapm-text: #edf2f4;
+    --kapm-muted: #d4d8e8;
+    --kapm-subtle: #b0b5c9;
+    --kapm-icon-bg: #edf2f4;
+    --kapm-icon-fg: #2b2d42;
+    --kapm-icon-border: #edf2f4;
+    --kapm-icon-hover-bg: #8ecae6;
+    --kapm-icon-hover-fg: #2b2d42;
+    --kapm-icon-hover-border: #8ecae6;
+}
+
+.kapm-color-dark .kapm-author-label {
+    color: var(--kapm-accent);
+}
+
+/* カスタム: style 属性で --kapm-bg / --kapm-text / --kapm-name / --kapm-accent を受け取る
+   （未指定の色は下の既定値）。線や補助の文字色は背景と文字色を混ぜて作る */
+.kapm-color-custom {
+    --kapm-bg: #fff;
+    --kapm-text: #333;
+    --kapm-name: var(--kapm-text);
+    --kapm-border: color-mix(in srgb, var(--kapm-text) 20%, var(--kapm-bg));
+    --kapm-muted: color-mix(in srgb, var(--kapm-text) 85%, var(--kapm-bg));
+    --kapm-subtle: color-mix(in srgb, var(--kapm-text) 75%, var(--kapm-bg));
+    --kapm-icon-bg: var(--kapm-bg);
+    --kapm-icon-fg: var(--kapm-text);
+    --kapm-icon-border: var(--kapm-border);
+    --kapm-icon-hover-bg: var(--kapm-accent);
+    --kapm-icon-hover-fg: var(--kapm-bg);
+    --kapm-icon-hover-border: var(--kapm-accent);
+}
+
+/* 名前の色を持つカラー（ダーク・カスタム）は、テーマのリンク色より優先する */
+.kapm-color-dark .kapm-author-name,
+.kapm-color-dark .kapm-author-name a,
+.kapm-color-custom .kapm-author-name,
+.kapm-color-custom .kapm-author-name a {
+    color: var(--kapm-name);
+}
+
+.kapm-color-dark .kapm-author-name a:hover,
+.kapm-color-custom .kapm-author-name a:hover {
+    color: var(--kapm-accent);
 }

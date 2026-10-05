@@ -4,7 +4,7 @@ Tags: author, schema, json-ld, structured-data, seo
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,9 +19,11 @@ Kashiwazaki SEO Author Panel Managerは、WordPressユーザーとは独立し�
 * Person（人物）、Corporation（法人）、Organization（組織）の独立管理
 * Gutenbergブロックエディタ対応（挿入・設定・プレビュー）
 * Schema.org JSON-LD構造化データ出力（Person / Corporation / Organization）
-* Standardモード（独立JSON-LD）とCustomモード（既存スキーマへの紐付け）
+* Standardモード（独立JSON-LD）、Customモード（既存スキーマへの紐付け）、出力しない（パネルのみ）
 * エンティティごとの表示ラベル設定（執筆者・監修者・運営会社等）
-* 5種類のパネルデザイン（Default / Dark / Accent / Minimal / Card）
+* 画像のデザイン（丸 / 角丸の四角 / 四角 / 楕円 / 切り抜かない）を記事ごとに選択
+* ドラッグまたは ↑↓ ボタンでパネルの並び順を変更
+* パネルのデザイン（標準 / アクセント / ミニマル / カード）とカラー（おまかせ / グレー / 白 / ダーク / ブルー / グリーン / オレンジ / カスタム）を別々に設定
 * sameAs URLのソーシャルアイコン自動表示
 * メディアライブラリからの画像選択
 
@@ -42,6 +44,17 @@ Kashiwazaki SEO Author Panel Managerは、WordPressユーザーとは独立し�
 はい。本プラグインは独自のデータベーステーブルでエンティティを管理するため、WordPressユーザーとは完全に独立しています。
 
 == Changelog ==
+
+= 1.0.3 =
+* 機能追加: ブロックエディタで、エンティティごとに画像のデザイン（丸 / 角丸の四角 / 四角 / 楕円（縦長・横長）/ 切り抜かない）を選べるようにした
+* 機能追加: ブロックエディタのサイドバーに「並び順」を追加。ドラッグまたは ↑↓ ボタンでパネルの順番を変更できる
+* 機能追加: 出力モードに「出力しない（パネルの表示だけ）」を追加
+* 機能追加: Custom モードで紐付け先の @id が空のとき、ブロックエディタに警告を表示
+* 変更: 「パネルデザイン」を「パネルのデザイン」（形）と「パネルのカラー」（色）の 2 項目に分割。カラーはプリセット 7 種とカスタム（背景色・文字色・アクセント色）。旧「Dark」は「標準 × ダーク」として読み替え
+* 変更: テーブル構造のバージョンを記録し、ファイル上書き更新時も不足列を自動追加
+* バグ修正: sameAs URL のパーセントエンコード（%E6 等）が保存時に削除され、日本語を含む URL が壊れる問題を修正
+* バグ修正: Threads の新ドメイン threads.com が汎用アイコンになる問題を修正
+* 削除: Web から直接実行できる状態になっていた開発用テストスクリプト（tests/）を配布物から削除
 
 = 1.0.2 =
 * セキュリティ: sameAs URL のスキームを http/https の許可リストに制限。`javascript:`、`data:`、`file:` 等の危険スキームが Schema.org JSON-LD の sameAs 配列に混入する経路を遮断（フィルタフック `kapm_same_as_protocols` で許可スキーム拡張可）

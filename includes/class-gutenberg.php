@@ -29,6 +29,8 @@ class KAPM_Gutenberg {
                 'mode'           => array( 'type' => 'string', 'default' => 'standard' ),
                 'targetSchemaId' => array( 'type' => 'string', 'default' => '' ),
                 'labels'         => array( 'type' => 'string', 'default' => '{}' ),
+                'imageStyles'    => array( 'type' => 'string', 'default' => '{}' ),
+                'order'          => array( 'type' => 'string', 'default' => '' ),
             ),
         ) );
     }
@@ -64,6 +66,8 @@ class KAPM_Gutenberg {
             'mode'             => $attributes['mode'] ?? 'standard',
             'target_schema_id' => $attributes['targetSchemaId'] ?? '',
             'labels'           => $attributes['labels'] ?? '{}',
+            'image_styles'     => $attributes['imageStyles'] ?? '{}',
+            'order'            => $attributes['order'] ?? '',
         ) );
     }
 

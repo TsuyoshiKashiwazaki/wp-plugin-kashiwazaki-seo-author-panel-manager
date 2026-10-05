@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.2</span>
+        <span class="version">v1.0.3</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -49,23 +49,30 @@
     <div class="step">
         <div class="step-number">3</div>
         <div class="step-body">
-            <p>右サイドバー（InspectorControls）の <strong>Person</strong> / <strong>Corporation</strong> / <strong>Organization</strong> パネルから、表示したいエンティティをチェックボックスで選択します。チェック直後に「表示ラベル」入力欄が現れます。</p>
+            <p>右サイドバー（InspectorControls）の <strong>Person</strong> / <strong>Corporation</strong> / <strong>Organization</strong> パネルから、表示したいエンティティをチェックボックスで選択します。チェック直後に「◯◯ の表示ラベル」入力欄と「◯◯ の画像のデザイン」セレクトが現れます。</p>
         </div>
     </div>
     <div class="step">
         <div class="step-number">4</div>
         <div class="step-body">
-            <p><strong>出力モード</strong> パネルで Standard / Custom を選びます。Custom 選択時は「紐付け先スキーマの @id」入力欄が追加表示されます。</p>
+            <p>エンティティを 2 件以上選ぶと <strong>並び順</strong> パネルが現れます。行の左端の「≡」をつかんでドラッグするか、行の右の ↑↓ ボタンで、パネルを表示する順番を変えられます。</p>
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <p><strong>出力モード</strong> パネルで Standard / Custom / 出力しない を選びます。Custom 選択時は「紐付け先スキーマの @id」入力欄が追加表示され、空のままだと警告が出ます。</p>
         </div>
     </div>
 
     <div class="screenshot">
-        <img src="images/screenshots/06-block-editor.png" alt="ブロックエディタのサイドバー" class="lightbox-trigger">
+        <img src="images/screenshots/06-block-editor.png" alt="ブロックエディタで著者パネルブロックを選んだ状態" class="lightbox-trigger">
+        <div class="caption">ブロックを選ぶと右のサイドバーに設定が表示されます。ブロック本体のプレビューは並び順のとおりに表示されます</div>
     </div>
 
-    <h3>ブロック属性リファレンス（全 6 属性）</h3>
+    <h3>ブロック属性リファレンス（全 8 属性）</h3>
 
-    <p><code>includes/class-gutenberg.php</code> の <code>register_block_type()</code> で定義されている 6 個の属性です。すべて <code>string</code> 型で、デフォルト値は空文字またはそれに準じる値になっています。</p>
+    <p><code>includes/class-gutenberg.php</code> の <code>register_block_type()</code> で定義されている 8 個の属性です。すべて <code>string</code> 型で、デフォルト値は空文字またはそれに準じる値になっています。</p>
 
     <table>
         <thead>
@@ -99,7 +106,7 @@
                 <td><code>mode</code></td>
                 <td><code>string</code></td>
                 <td><code>'standard'</code></td>
-                <td>JSON-LD 出力モード。<code>standard</code>（独立 <code>@graph</code> を本文内に出力）または <code>custom</code>（既存スキーマの <code>@id</code> に紐付けて <code>wp_head</code> に出力）。</td>
+                <td>JSON-LD 出力モード。<code>standard</code>（独立 <code>@graph</code> を本文内に出力）、<code>custom</code>（既存スキーマの <code>@id</code> に紐付けて <code>wp_head</code> に出力）、<code>none</code>（JSON-LD を出力せずパネルだけ表示。v1.0.3 で追加）の 3 種。</td>
             </tr>
             <tr>
                 <td><code>targetSchemaId</code></td>
@@ -113,12 +120,24 @@
                 <td><code>'{}'</code></td>
                 <td>エンティティごとの表示ラベル（「執筆者」「監修者」等）を格納した JSON 文字列。キー形式は <code>person-{id}</code> / <code>corp-{id}</code> / <code>org-{id}</code>。JSON として不正な場合は空オブジェクトとして扱われます。</td>
             </tr>
+            <tr>
+                <td><code>imageStyles</code></td>
+                <td><code>string</code></td>
+                <td><code>'{}'</code></td>
+                <td>エンティティごとの画像のデザインを格納した JSON 文字列（例: <code>{"person-1":"ellipse-v","corp-1":"original"}</code>）。キー形式は <code>labels</code> と同じ。値は後述「画像のデザイン」の 6 種で、それ以外の値や未指定のエンティティは <code>circle</code>（丸）になります。既定の丸は保存されません（v1.0.3 で追加）。</td>
+            </tr>
+            <tr>
+                <td><code>order</code></td>
+                <td><code>string</code></td>
+                <td><code>''</code></td>
+                <td>パネルの並び順。キーのカンマ区切り（例: <code>"person-1,org-1,corp-1"</code>）。空のときは Person → Corporation → Organization の順。<code>person-{id}</code> / <code>corp-{id}</code> / <code>org-{id}</code> の形でない値は無視され、並び順に含まれないパネルは既定の順で後ろに付きます（v1.0.3 で追加）。</td>
+            </tr>
         </tbody>
     </table>
 
-    <h3>サイドバー UI の 4 パネル構成</h3>
+    <h3 id="block-sidebar">サイドバー UI の 5 パネル構成</h3>
 
-    <p><code>assets/js/gutenberg-sidebar.js</code> の InspectorControls では、以下の 4 つの PanelBody が配置されます。</p>
+    <p><code>assets/js/gutenberg-sidebar.js</code> の InspectorControls では、以下の 5 つの PanelBody が配置されます。</p>
 
     <table>
         <thead>
@@ -131,26 +150,36 @@
         <tbody>
             <tr>
                 <td>Person</td>
-                <td>登録済み Person の一覧をチェックボックスで表示。チェック中のエンティティごとに「表示ラベル」TextControl が展開（placeholder: 「例: 執筆者、監修者など」）。下部に「Person管理を開く」リンク。</td>
-                <td><code>persons</code>, <code>labels</code>（<code>person-{id}</code> キー）</td>
+                <td>登録済み Person の一覧をチェックボックスで表示。チェック中のエンティティごとに「◯◯ の表示ラベル」TextControl（placeholder: 「例: 執筆者、監修者など」）と、その下に「◯◯ の画像のデザイン」SelectControl が展開。下部に「Person管理を開く」リンク。</td>
+                <td><code>persons</code>, <code>labels</code> / <code>imageStyles</code>（<code>person-{id}</code> キー）</td>
             </tr>
             <tr>
                 <td>Corporation</td>
-                <td>登録済み Corporation のチェックボックス一覧とラベル入力欄（placeholder: 「例: 運営会社、スポンサーなど」）。</td>
-                <td><code>corporations</code>, <code>labels</code>（<code>corp-{id}</code> キー）</td>
+                <td>登録済み Corporation のチェックボックス一覧、ラベル入力欄（placeholder: 「例: 運営会社、スポンサーなど」）と画像のデザイン。</td>
+                <td><code>corporations</code>, <code>labels</code> / <code>imageStyles</code>（<code>corp-{id}</code> キー）</td>
             </tr>
             <tr>
                 <td>Organization</td>
-                <td>登録済み Organization のチェックボックス一覧とラベル入力欄（placeholder: 「例: 運営メディア、発行元など」）。</td>
-                <td><code>organizations</code>, <code>labels</code>（<code>org-{id}</code> キー）</td>
+                <td>登録済み Organization のチェックボックス一覧、ラベル入力欄（placeholder: 「例: 運営メディア、発行元など」）と画像のデザイン。</td>
+                <td><code>organizations</code>, <code>labels</code> / <code>imageStyles</code>（<code>org-{id}</code> キー）</td>
+            </tr>
+            <tr>
+                <td>並び順</td>
+                <td>エンティティを 2 件以上選んだときだけ表示。選んだパネルが 1 行ずつ並び、左端の「≡」をつかんでドラッグするか、右の ↑（上へ）・↓（下へ）ボタンで順番を入れ替えます。先頭の ↑ と末尾の ↓ は押せません（v1.0.3 で追加）。</td>
+                <td><code>order</code></td>
             </tr>
             <tr>
                 <td>出力モード</td>
-                <td><code>RadioControl</code> で Standard / Custom の 2 択。Custom 選択時のみ <code>TextControl</code>「紐付け先スキーマの @id」が表示されます（placeholder: <code>https://example.com/#article</code>）。</td>
+                <td><code>RadioControl</code> で Standard（通常）／Custom（他プラグインのスキーマに紐付け）／出力しない（パネルの表示だけ）の 3 択。Custom 選択時のみ <code>TextControl</code>「紐付け先スキーマの @id」が表示されます（placeholder: <code>https://example.com/#article</code>）。Custom で @id が空のときは、黄色の警告「紐付け先スキーマの@idが空のため、構造化データは出力されません。…」が表示されます。</td>
                 <td><code>mode</code>, <code>targetSchemaId</code></td>
             </tr>
         </tbody>
     </table>
+
+    <div class="screenshot">
+        <img src="images/screenshots/07-block-sidebar.png" alt="ブロックのサイドバー（表示ラベル・画像のデザイン・並び順・出力モード）" class="lightbox-trigger">
+        <div class="caption">サイドバー全体。各エンティティの「表示ラベル」の下に「画像のデザイン」、その下に「並び順」「出力モード」が並びます</div>
+    </div>
 
     <div class="callout callout-note">
         <div class="callout-title">REST API 経由のエンティティ取得</div>
@@ -159,7 +188,40 @@
 
     <h3>ブロックのプレビュー表示</h3>
 
-    <p>エンティティが 1 件以上選択されている場合、ブロック本体にプレビュー枠が表示されます。Person は 👤、Corporation は 🏢、Organization は 🏛 のアイコン付きで登録名が並び、下部に現在の <code>Mode</code> と（Custom 時は）<code>Target</code> が表示されます。選択ゼロの場合は WordPress 標準の <code>Placeholder</code> コンポーネントで「右サイドバーから選択してください」と表示されます。</p>
+    <p>エンティティが 1 件以上選択されている場合、ブロック本体にプレビュー枠が表示されます。Person は 👤、Corporation は 🏢、Organization は 🏛 のアイコン付きで登録名が<strong>並び順のとおりに</strong>並び、下部に現在の <code>Mode</code> と（Custom 時は）<code>Target</code> が表示されます。Custom で @id が空のときは、ここにも赤字で警告が出ます。選択ゼロの場合は WordPress 標準の <code>Placeholder</code> コンポーネントで「右サイドバーから選択してください」と表示されます。</p>
+
+    <h3 id="image-style">画像のデザイン</h3>
+
+    <p>人物の写真や法人・組織のロゴの形を、記事ごと・エンティティごとに選べます（v1.0.3 で追加）。共通の見た目（パネルのデザインとカラー）は<a href="entity-management.html">エンティティの編集画面</a>で、画像の形はこのブロックで決める、という分担です。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28%;">サイドバーの表示名</th>
+                <th style="width:14%;">値</th>
+                <th style="width:16%;">表示サイズ</th>
+                <th>形</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>丸（標準）</td><td><code>circle</code></td><td>80×80px</td><td>正円に切り抜き。未指定時はこれ（v1.0.2 までと同じ）</td></tr>
+            <tr><td>角丸の四角</td><td><code>rounded</code></td><td>80×80px</td><td>角の丸み 12px の正方形</td></tr>
+            <tr><td>四角</td><td><code>square</code></td><td>80×80px</td><td>角丸なしの正方形</td></tr>
+            <tr><td>楕円（縦長）</td><td><code>ellipse-v</code></td><td>72×96px</td><td>縦長の楕円に切り抜き。人物写真向け</td></tr>
+            <tr><td>楕円（横長）</td><td><code>ellipse-h</code></td><td>104×72px</td><td>横長の楕円に切り抜き</td></tr>
+            <tr><td>切り抜かない（元の形のまま）</td><td><code>original</code></td><td>幅 80px・高さは元画像の比率</td><td>切り抜かずに全体を表示。横長のロゴ向け</td></tr>
+        </tbody>
+    </table>
+
+    <div class="screenshot">
+        <img src="images/screenshots/09-image-styles.png" alt="画像のデザイン 6 種と、ロゴを丸・切り抜かないで表示した例" class="lightbox-trigger">
+        <div class="caption">上から 丸・角丸の四角・四角・楕円（縦長）・楕円（横長）・切り抜かない。下の 2 つは横長のロゴを「丸」と「切り抜かない」で表示した例</div>
+    </div>
+
+    <div class="callout callout-tip">
+        <div class="callout-title">横長のロゴは「切り抜かない」で</div>
+        <p>丸・四角・楕円は画像を枠いっぱいに広げて（<code>object-fit: cover</code>）はみ出た部分を切り取ります。横長のロゴを丸にすると左右が欠けるので、ロゴは「切り抜かない」か「楕円（横長）」がおすすめです。</p>
+    </div>
 
     <h2>ショートコード <code>[author_panel]</code></h2>
 
@@ -176,7 +238,10 @@
     <p>Custom モードで Yoast SEO などが出力した記事スキーマに紐付ける例:</p>
     <pre><code>[author_panel persons="1" corporations="3" mode="custom" target_schema_id="https://example.com/post/#article"]</code></pre>
 
-    <h3>ショートコード属性リファレンス（全 6 属性）</h3>
+    <p>並び順・画像のデザインを指定し、構造化データは出さない例:</p>
+    <pre><code>[author_panel persons="1" corporations="3" mode="none" order="corp-3,person-1" image_styles='{"corp-3":"original"}']</code></pre>
+
+    <h3>ショートコード属性リファレンス（全 8 属性）</h3>
 
     <p>ブロックと完全対応していますが、属性名がスネークケースに変わる点と <code>target_schema_id</code> のアンダースコア表記に注意してください。</p>
 
@@ -192,9 +257,11 @@
             <tr><td><code>persons</code></td><td><code>''</code></td><td>Person ID のカンマ区切りリスト。<code>parse_ids()</code> で <code>absint()</code> + <code>array_filter</code> 処理されるため、0 や不正値（文字列、負数）は自動的に捨てられます。</td></tr>
             <tr><td><code>corporations</code></td><td><code>''</code></td><td>Corporation ID のカンマ区切りリスト。処理ルールは <code>persons</code> と同じ。</td></tr>
             <tr><td><code>organizations</code></td><td><code>''</code></td><td>Organization ID のカンマ区切りリスト。処理ルールは同上。</td></tr>
-            <tr><td><code>mode</code></td><td><code>'standard'</code></td><td>JSON-LD 出力モード。<code>standard</code> または <code>custom</code>。それ以外の値は Standard として扱われます。</td></tr>
+            <tr><td><code>mode</code></td><td><code>'standard'</code></td><td>JSON-LD 出力モード。<code>standard</code>（本文内に出力）、<code>custom</code>（<code>&lt;head&gt;</code> 内で既存スキーマに紐付け）、<code>none</code>（出力しない）。JSON-LD を出すのは <code>standard</code> と <code>custom</code> のときだけで、それ以外の値では JSON-LD は出力されません。</td></tr>
             <tr><td><code>target_schema_id</code></td><td><code>''</code></td><td>Custom モードでの紐付け先 <code>@id</code>。<strong>Custom モードでこれが空だと Custom 側の JSON-LD は一切出力されません</strong>（HTML パネルのみ表示）。</td></tr>
             <tr><td><code>labels</code></td><td><code>'{}'</code></td><td>表示ラベルの JSON 文字列。<code>json_decode()</code> が失敗した場合は空配列扱いになり、ラベルは表示されません。</td></tr>
+            <tr><td><code>image_styles</code></td><td><code>'{}'</code></td><td>画像のデザインの JSON 文字列（ブロックの <code>imageStyles</code> に対応）。許可された 6 値以外は捨てられ、丸になります（v1.0.3 で追加）。JSON の中に <code>"</code> を使うため、属性値はシングルクォートで囲んでください。</td></tr>
+            <tr><td><code>order</code></td><td><code>''</code></td><td>並び順（ブロックの <code>order</code> に対応）。<code>corp-3,person-1</code> のようにキーをカンマ区切りで指定します（v1.0.3 で追加）。</td></tr>
         </tbody>
     </table>
 
@@ -291,6 +358,11 @@
     </div>
 
     <div class="callout callout-warning">
+        <div class="callout-title">紐付け先の @id が空だと何も出ません</div>
+        <p>Custom モードで「紐付け先スキーマの @id」が空のときは、Custom の JSON-LD は作られず、本文側（Standard）の JSON-LD も出ません。ブロックエディタではこの状態を黄色の警告で知らせます。構造化データが不要なら、出力モードを「出力しない」にしてください。</p>
+    </div>
+
+    <div class="callout callout-warning">
         <div class="callout-title">アーカイブ・ホームでは Custom モードは動作しません</div>
         <p><code>preparse_custom_mode()</code> は <code>is_singular()</code> でガードされているため、カテゴリーアーカイブ・タグアーカイブ・検索結果・ホームページでは Custom 側の JSON-LD は出力されません。アーカイブ系で著者パネルを出したい場合は Standard モードを使用してください。HTML パネル自体（ショートコード本体の出力）はこの制約の対象外です。</p>
     </div>
@@ -340,24 +412,28 @@
         <p>1 記事内で複数のブロック／ショートコードを挿入し、一方を Standard、もう一方を Custom にすることもできます。Standard は本文内、Custom は <code>&lt;head&gt;</code> 内と出力先が分かれているため衝突しません。</p>
     </div>
 
+    <h2>出力しない（none）モード</h2>
+
+    <p>出力モードで <strong>出力しない（パネルの表示だけ）</strong> を選ぶと、HTML パネルだけを表示し、本プラグインの JSON-LD は一切出力しません（v1.0.3 で追加）。別のプラグインやテーマが同じ人物・組織の構造化データをすでに出していて、見た目のパネルだけを使いたいページ向けです。</p>
+
     <h2>フロントエンド HTML 出力</h2>
 
     <div class="screenshot">
         <img src="images/screenshots/05-frontend-panel.png" alt="フロントエンド著者パネル表示" class="lightbox-trigger">
     </div>
 
-    <p>HTML はルート要素 <code>.kapm-author-panel</code> の中に、エンティティごとのカード <code>.kapm-author-card</code> を flex で並べる構造です。各カードにはエンティティ種別（<code>.kapm-person</code> / <code>.kapm-corporation</code> / <code>.kapm-organization</code>）と <code>panel_style</code>（<code>.kapm-style-default</code> ほか）の 2 つのクラスが付きます。</p>
+    <p>HTML はルート要素 <code>.kapm-author-panel</code> の中に、エンティティごとのカード <code>.kapm-author-card</code> を flex で並べる構造です。各カードにはエンティティ種別（<code>.kapm-person</code> / <code>.kapm-corporation</code> / <code>.kapm-organization</code>）、パネルのデザイン（<code>.kapm-style-default</code> ほか）、パネルのカラー（<code>.kapm-color-auto</code> ほか）、画像のデザイン（<code>.kapm-image-circle</code> ほか）の 4 つのクラスが付きます。カラーが「カスタム」のときは、カードの <code>style</code> 属性に CSS 変数（<code>--kapm-bg</code> など）が出力されます。カードの並びは、ブロックの並び順（<code>order</code>）に従います。</p>
 
     <p>Person のカード内では、名前が URL にリンクされる際に <strong><code>rel="author"</code></strong> 属性が付きます（Corporation / Organization のリンクには付きません）。これは Person 特有の扱いで、検索エンジンに対して「この記事の著者リンク」であることを伝える役割があります。</p>
 
     <div class="callout callout-note">
         <div class="callout-title">CSS の読み込み条件</div>
-        <p>フロントエンド CSS（<code>public/css/panel-style.css</code>、実測 <strong>4,629 バイト</strong>）は、ショートコードが <code>render()</code> される時点で <code>wp_enqueue_style()</code> されます。著者パネルが挿入されていないページでは CSS は読み込まれません。フロントエンド側で独自 JavaScript は一切使用しません（Core Web Vitals に追加の JS 評価コストを発生させません）。</p>
+        <p>フロントエンド CSS（<code>public/css/panel-style.css</code>、実測 <strong>8,042 バイト</strong>）は、ショートコードが <code>render()</code> される時点で <code>wp_enqueue_style()</code> されます。著者パネルが挿入されていないページでは CSS は読み込まれません。フロントエンド側で独自 JavaScript は一切使用しません（Core Web Vitals に追加の JS 評価コストを発生させません）。</p>
     </div>
 
-    <h2>sameAs アイコンマッピング全 44 ドメイン</h2>
+    <h2>sameAs アイコンマッピング全 45 ドメイン</h2>
 
-    <p>エンティティの sameAs URL は、フロント側で Dashicons アイコン付きリンクとして表示されます。URL のホスト名から自動的にサービスを判定し、以下 44 パターンのいずれかにマッチすれば対応アイコン、マッチしなければ <code>dashicons-admin-site</code>（汎用 Web サイトアイコン）が使われます。</p>
+    <p>エンティティの sameAs URL は、フロント側で Dashicons アイコン付きリンクとして表示されます。URL のホスト名から自動的にサービスを判定し、以下 45 パターンのいずれかにマッチすれば対応アイコン、マッチしなければ <code>dashicons-admin-site</code>（汎用 Web サイトアイコン）が使われます。</p>
 
     <p>マッチロジック: <code>wp_parse_url($url, PHP_URL_HOST)</code> で取得したホスト名から <code>www.</code> を取り除き、マップキーと完全一致するか、末尾ドット付きキー（例: <code>amazon.</code>）で前方一致するかを判定します。</p>
 
@@ -372,7 +448,8 @@
             <tr><td><code>facebook.com</code></td><td><code>dashicons-facebook-alt</code></td><td>Facebook</td></tr>
             <tr><td><code>instagram.com</code></td><td><code>dashicons-camera</code></td><td>Instagram</td></tr>
             <tr><td><code>linkedin.com</code></td><td><code>dashicons-businessperson</code></td><td>LinkedIn</td></tr>
-            <tr><td><code>threads.net</code></td><td><code>dashicons-format-status</code></td><td>Threads</td></tr>
+            <tr><td><code>threads.net</code></td><td><code>dashicons-format-status</code></td><td>Threads（旧ドメイン）</td></tr>
+            <tr><td><code>threads.com</code></td><td><code>dashicons-format-status</code></td><td>Threads（v1.0.3 で追加）</td></tr>
             <tr><td><code>bsky.app</code></td><td><code>dashicons-share</code></td><td>Bluesky</td></tr>
             <tr><td><code>mastodon.</code>（前方一致）</td><td><code>dashicons-share</code></td><td>Mastodon (インスタンス全般)</td></tr>
             <tr><td><code>tumblr.com</code></td><td><code>dashicons-share</code></td><td>Tumblr</td></tr>
@@ -468,7 +545,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.2</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
     </footer>
 </main>
 
