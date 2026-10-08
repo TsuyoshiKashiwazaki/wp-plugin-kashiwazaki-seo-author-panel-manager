@@ -1,6 +1,6 @@
 # Kashiwazaki SEO Author Panel Manager
 
-![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.4-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0%2B-green.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple.svg)
 ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)
@@ -17,6 +17,7 @@ Person（人物）、Corporation（法人）、Organization（組織）の3種�
 - **画像のデザイン** - 丸 / 角丸の四角 / 四角 / 楕円（縦長・横長）/ 切り抜かない を記事ごと・エンティティごとに選択
 - **並び順** - ブロックエディタのサイドバーでドラッグまたは ↑↓ ボタンでパネルの順番を変更
 - **パネルのデザインとカラー** - 形（標準 / アクセント / ミニマル / カード）と色（おまかせ / グレー / 白 / ダーク / ブルー / グリーン / オレンジ / カスタム）をエンティティごとに別々に選択。カスタムでは背景色・文字色・アクセント色を指定可能
+- **住所・連絡先・法人情報** - Corporation / Organization に住所・電話番号・メール・問い合わせ窓口・正式名称・設立日・従業員数・各種識別番号を任意で入力。住所と電話番号はパネルに表示し、入力した項目を名前の横の吹き出し（国コードは除く）と構造化データに出力
 - **ソーシャルアイコン** - sameAs URLを自動判定してDashiconsで表示（X、Facebook、LinkedIn、GitHub、YouTube等）
 - **メディアライブラリ連携** - 画像・ロゴをWordPressメディアライブラリから選択
 - **使用記事の追跡** - 各エンティティの編集画面から、どの記事で使われているかを確認可能

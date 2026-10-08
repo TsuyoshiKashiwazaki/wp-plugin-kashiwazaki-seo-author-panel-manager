@@ -88,6 +88,7 @@
 .kapm-author-info {
     flex: 1;
     min-width: 0;
+    position: relative; /* 詳細情報の吹き出しの位置の基準 */
 }
 
 .kapm-author-label {
@@ -131,6 +132,160 @@
     color: var(--kapm-text);
     line-height: 1.6;
     margin-bottom: 4px;
+}
+
+/* 住所・電話番号（Corporation / Organization で入力があるときだけ表示） */
+.kapm-author-contact {
+    font-size: 0.85em;
+    color: var(--kapm-muted);
+    line-height: 1.6;
+    margin-bottom: 4px;
+}
+
+.kapm-author-address,
+.kapm-author-tel {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.kapm-author-contact .dashicons {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    margin-top: 0.2em;
+}
+
+.kapm-author-tel a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.kapm-author-tel a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   詳細情報の吹き出し（Corporation / Organization の住所・連絡先・法人情報）
+   名前の横の i ボタンに :hover / :focus-within で表示。Esc で閉じる処理だけ小さなスクリプトで行う
+   位置は i ボタンではなく情報欄（.kapm-author-info）を基準にし、名前の行のすぐ下に情報欄の幅いっぱいで出す。
+   i ボタンを基準にすると、名前が長くボタンが右に寄ったときに画面の右端からはみ出すため
+   （top: auto のままにして、静的に置いた場合の縦位置 = ボタンの行の下に置く）
+   ============================================ */
+.kapm-org-info {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.kapm-author-panel .kapm-org-info-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0 !important;
+    background: none !important;
+    border: 0 !important;
+    border-radius: 50%;
+    box-shadow: none !important;
+    color: var(--kapm-subtle);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.kapm-author-panel .kapm-org-info-button:hover,
+.kapm-author-panel .kapm-org-info-button:focus-visible {
+    color: var(--kapm-accent);
+}
+
+.kapm-author-panel .kapm-org-info-button:focus-visible {
+    outline: 2px solid var(--kapm-accent);
+    outline-offset: 1px;
+}
+
+.kapm-org-info-button .dashicons {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+}
+
+/* 項目名と内容の 2 列（項目名は折り返さない）。行の span は display: contents で格子に直接並べる */
+.kapm-org-info-bubble {
+    display: none;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 14px;
+    row-gap: 2px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: #333;
+    color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.6;
+    text-align: left;
+    white-space: normal;
+}
+
+/* ボタンと吹き出しのすき間を埋める透明な橋（ポインタを吹き出しへ動かしても閉じないように） */
+.kapm-org-info-bubble::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+}
+
+.kapm-org-info:hover .kapm-org-info-bubble,
+.kapm-org-info:focus-within .kapm-org-info-bubble {
+    display: grid;
+}
+
+.kapm-org-info.is-dismissed .kapm-org-info-bubble {
+    display: none;
+}
+
+.kapm-org-info-row {
+    display: contents;
+}
+
+.kapm-org-info-label {
+    white-space: nowrap;
+    color: #c8c8c8;
+}
+
+.kapm-org-info-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* 狭い画面では、項目名と内容を縦に並べる */
+@media (max-width: 600px) {
+    .kapm-org-info-bubble {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .kapm-org-info-label {
+        margin-top: 6px;
+        font-size: 12px;
+        white-space: normal;
+    }
+
+    .kapm-org-info-row:first-child .kapm-org-info-label {
+        margin-top: 0;
+    }
 }
 
 .kapm-social-icons {

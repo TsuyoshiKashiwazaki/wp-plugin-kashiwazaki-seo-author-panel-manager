@@ -50,7 +50,7 @@ class KAPM_Database {
                         'color_bg'    => array( 'type' => 'color',    'default' => '' ),
                         'color_text'  => array( 'type' => 'color',    'default' => '' ),
                         'color_accent' => array( 'type' => 'color', 'default' => '' ),
-                    ),
+                    ) + self::get_org_detail_fields(),
                 ),
                 'organization' => array(
                     'table'        => 'apm_organizations',
@@ -69,11 +69,42 @@ class KAPM_Database {
                         'color_bg'    => array( 'type' => 'color',    'default' => '' ),
                         'color_text'  => array( 'type' => 'color',    'default' => '' ),
                         'color_accent' => array( 'type' => 'color', 'default' => '' ),
-                    ),
+                    ) + self::get_org_detail_fields(),
                 ),
             );
         }
         return $configs[ $type ] ?? null;
+    }
+
+    /**
+     * Corporation / Organization 共通の任意項目（住所・連絡先・法人情報）
+     * キーは DB の列名、type は prepare_field_values() での無害化の方法
+     * 出力先は Google の Organization 構造化データのプロパティ
+     * https://developers.google.com/search/docs/appearance/structured-data/organization
+     */
+    public static function get_org_detail_fields(): array {
+        return array(
+            'postal_code'            => array( 'type' => 'text',      'default' => '' ), // address.postalCode
+            'address_region'         => array( 'type' => 'text',      'default' => '' ), // address.addressRegion
+            'address_locality'       => array( 'type' => 'text',      'default' => '' ), // address.addressLocality
+            'street_address'         => array( 'type' => 'text',      'default' => '' ), // address.streetAddress
+            'address_country'        => array( 'type' => 'country',   'default' => '' ), // address.addressCountry
+            'telephone'              => array( 'type' => 'text',      'default' => '' ),
+            'email'                  => array( 'type' => 'email',     'default' => '' ),
+            'contact_type'           => array( 'type' => 'text',      'default' => '' ), // contactPoint.contactType
+            'contact_telephone'      => array( 'type' => 'text',      'default' => '' ), // contactPoint.telephone
+            'contact_email'          => array( 'type' => 'email',     'default' => '' ), // contactPoint.email
+            'legal_name'             => array( 'type' => 'text',      'default' => '' ),
+            'founding_date'          => array( 'type' => 'date',      'default' => '' ),
+            'number_of_employees'    => array( 'type' => 'employees', 'default' => '' ),
+            'tax_id'                 => array( 'type' => 'text',      'default' => '' ),
+            'vat_id'                 => array( 'type' => 'text',      'default' => '' ),
+            'iso6523_code'           => array( 'type' => 'text',      'default' => '' ),
+            'duns'                   => array( 'type' => 'text',      'default' => '' ),
+            'lei_code'               => array( 'type' => 'text',      'default' => '' ),
+            'global_location_number' => array( 'type' => 'text',      'default' => '' ),
+            'naics'                  => array( 'type' => 'text',      'default' => '' ),
+        );
     }
 
     /**
@@ -103,6 +134,12 @@ class KAPM_Database {
         $table_persons       = $wpdb->prefix . 'apm_persons';
         $table_corporations  = $wpdb->prefix . 'apm_corporations';
         $table_organizations = $wpdb->prefix . 'apm_organizations';
+
+        // Corporation / Organization 共通の任意項目の列（dbDelta の書式に合わせ 1 列 1 行）
+        $org_detail_columns = '';
+        foreach ( array_keys( self::get_org_detail_fields() ) as $column ) {
+            $org_detail_columns .= "            {$column} varchar(255) NOT NULL DEFAULT '',\n";
+        }
 
         $sql_persons = "CREATE TABLE {$table_persons} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -137,7 +174,7 @@ class KAPM_Database {
             color_bg varchar(7) NOT NULL DEFAULT '',
             color_text varchar(7) NOT NULL DEFAULT '',
             color_accent varchar(7) NOT NULL DEFAULT '',
-            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+{$org_detail_columns}            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         ) {$charset_collate};";
 
@@ -155,7 +192,7 @@ class KAPM_Database {
             color_bg varchar(7) NOT NULL DEFAULT '',
             color_text varchar(7) NOT NULL DEFAULT '',
             color_accent varchar(7) NOT NULL DEFAULT '',
-            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+{$org_detail_columns}            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         ) {$charset_collate};";
 
@@ -311,29 +348,81 @@ class KAPM_Database {
         $values  = array();
         $formats = array();
         foreach ( $config['fields'] as $field => $meta ) {
-            $raw = $data[ $field ] ?? $meta['default'];
-            switch ( $meta['type'] ) {
-                case 'url':
-                    $values[ $field ] = esc_url_raw( (string) $raw );
-                    break;
-                case 'textarea':
-                    $values[ $field ] = sanitize_textarea_field( (string) $raw );
-                    break;
-                case 'url_list':
-                    $values[ $field ] = self::sanitize_url_list( (string) $raw );
-                    break;
-                case 'color':
-                    // #rgb / #rrggbb 以外は空文字（sanitize_hex_color は不正値で null を返す）
-                    $values[ $field ] = (string) sanitize_hex_color( (string) $raw );
-                    break;
-                case 'text':
-                default:
-                    $values[ $field ] = sanitize_text_field( (string) $raw );
-                    break;
-            }
-            $formats[] = '%s';
+            $values[ $field ] = self::sanitize_value( $meta['type'], (string) ( $data[ $field ] ?? $meta['default'] ) );
+            $formats[]        = '%s';
         }
         return array( 'values' => $values, 'formats' => $formats );
+    }
+
+    /**
+     * fields 定義の type に従って 1 つの値を無害化する
+     * 書式が決まっている型（email / country / date / employees）は、合わない値を空文字にする
+     */
+    public static function sanitize_value( string $type, string $raw ): string {
+        switch ( $type ) {
+            case 'url':
+                return esc_url_raw( $raw );
+            case 'textarea':
+                return sanitize_textarea_field( $raw );
+            case 'url_list':
+                return self::sanitize_url_list( $raw );
+            case 'color':
+                // #rgb / #rrggbb 以外は空文字（sanitize_hex_color は不正値で null を返す）
+                return (string) sanitize_hex_color( $raw );
+            case 'email':
+                // 形式が正しくないメールアドレスは sanitize_email が空文字を返す
+                return sanitize_email( $raw );
+            case 'country':
+                // ISO 3166-1 alpha-2（英字 2 文字）
+                $code = strtoupper( trim( $raw ) );
+                return preg_match( '/^[A-Z]{2}$/', $code ) ? $code : '';
+            case 'date':
+                return self::sanitize_iso_date( $raw );
+            case 'employees':
+                $range = self::parse_employees( $raw );
+                if ( $range === null ) {
+                    return '';
+                }
+                return $range['min'] === $range['max'] ? (string) $range['min'] : $range['min'] . '-' . $range['max'];
+            case 'text':
+            default:
+                return sanitize_text_field( $raw );
+        }
+    }
+
+    /**
+     * ISO 8601 の日付（YYYY / YYYY-MM / YYYY-MM-DD）。実在しない日付やそれ以外の書式は空文字
+     */
+    private static function sanitize_iso_date( string $raw ): string {
+        $date = trim( $raw );
+        if ( ! preg_match( '/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/', $date, $m ) ) {
+            return '';
+        }
+        $month = isset( $m[2] ) ? (int) $m[2] : 1;
+        $day   = isset( $m[3] ) ? (int) $m[3] : 1;
+        return checkdate( $month, $day, (int) $m[1] ) ? $date : '';
+    }
+
+    /**
+     * 従業員数を「人数」か「範囲」として読む。全角数字・カンマ・「〜」も受け付ける
+     * 例: '2056' → min=max=2056、'100-999' / '１００〜９９９' → min=100, max=999
+     *
+     * @return array{min: int, max: int}|null 読めない値は null
+     */
+    public static function parse_employees( string $raw ): ?array {
+        $text = strtr( trim( $raw ), array(
+            '０' => '0', '１' => '1', '２' => '2', '３' => '3', '４' => '4',
+            '５' => '5', '６' => '6', '７' => '7', '８' => '8', '９' => '9',
+            '〜' => '-', '～' => '-', '~' => '-', '－' => '-', '−' => '-',
+            ',' => '', '，' => '', ' ' => '', '　' => '',
+        ) );
+        if ( preg_match( '/^(\d{1,9})$/', $text, $m ) ) {
+            return array( 'min' => (int) $m[1], 'max' => (int) $m[1] );
+        }
+        if ( preg_match( '/^(\d{1,9})-(\d{1,9})$/', $text, $m ) && (int) $m[1] <= (int) $m[2] ) {
+            return array( 'min' => (int) $m[1], 'max' => (int) $m[2] );
+        }
+        return null;
     }
 
     // =========================================================================

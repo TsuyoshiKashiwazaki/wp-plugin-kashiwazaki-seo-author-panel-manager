@@ -197,6 +197,10 @@ class KAPM_Admin {
                 KAPM_Database::insert_entity( $type, $data );
                 $this->echo_notice( 'notice-success', __( '追加しました。', 'kashiwazaki-seo-author-panel-manager' ) );
             }
+            foreach ( $this->find_invalid_detail_labels( $type, $data ) as $label ) {
+                /* translators: %s: 入力欄の名前 */
+                $this->echo_notice( 'notice-warning', sprintf( __( '「%s」は書式が正しくないため、空欄として保存しました。', 'kashiwazaki-seo-author-panel-manager' ), $label ) );
+            }
             $action = 'list';
         }
 
@@ -235,7 +239,7 @@ class KAPM_Admin {
         }
 
         // corporation / organization
-        return array(
+        $data = array(
             'name'        => isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '',
             'name_en'     => isset( $_POST['name_en'] ) ? sanitize_text_field( wp_unslash( $_POST['name_en'] ) ) : '',
             'role'        => isset( $_POST['role'] ) ? sanitize_text_field( wp_unslash( $_POST['role'] ) ) : 'Publisher',
@@ -245,6 +249,153 @@ class KAPM_Admin {
             'same_as'     => isset( $_POST['same_as'] ) ? KAPM_Database::sanitize_url_list( wp_unslash( $_POST['same_as'] ) ) : '',
             'panel_style' => isset( $_POST['panel_style'] ) ? sanitize_text_field( wp_unslash( $_POST['panel_style'] ) ) : 'default',
         ) + $this->collect_panel_color_data();
+
+        // 住所・連絡先・法人情報（書式の検証は KAPM_Database::sanitize_value() で保存時に行う）
+        foreach ( array_keys( KAPM_Database::get_org_detail_fields() ) as $field ) {
+            $data[ $field ] = isset( $_POST[ $field ] ) ? sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) : '';
+        }
+        return $data;
+    }
+
+    /**
+     * 入力はあったが書式が合わず、保存時に空欄になる任意項目の名前を返す（Corp / Org のみ）
+     */
+    private function find_invalid_detail_labels( string $type, array $data ): array {
+        if ( $type === 'person' ) {
+            return array();
+        }
+        $labels = array();
+        foreach ( self::get_org_detail_sections() as $section ) {
+            $labels += wp_list_pluck( $section['fields'], 'label' );
+        }
+        $invalid = array();
+        foreach ( KAPM_Database::get_org_detail_fields() as $field => $meta ) {
+            $raw = trim( (string) ( $data[ $field ] ?? '' ) );
+            if ( $raw !== '' && KAPM_Database::sanitize_value( $meta['type'], $raw ) === '' ) {
+                $invalid[] = $labels[ $field ] ?? $field;
+            }
+        }
+        return $invalid;
+    }
+
+    /**
+     * Corporation / Organization の任意項目の入力欄（見出し・名前・説明）
+     * 列と無害化の方法は KAPM_Database::get_org_detail_fields() で定義する
+     */
+    public static function get_org_detail_sections(): array {
+        $tel_help = __( '国番号と市外局番を含めて入力してください（例: +81-3-1234-5678）。', 'kashiwazaki-seo-author-panel-manager' );
+        return array(
+            array(
+                'title'       => __( '住所・電話番号', 'kashiwazaki-seo-author-panel-manager' ),
+                'description' => __( '入力した項目は、パネル（説明文の下と、名前の横の i ボタンの吹き出し）と構造化データ（JSON-LD）に出力します。空欄の項目は出力しません。', 'kashiwazaki-seo-author-panel-manager' ),
+                'fields'      => array(
+                    'postal_code'      => array(
+                        'label'       => __( '郵便番号', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => '100-0001',
+                    ),
+                    'address_region'   => array(
+                        'label'       => __( '都道府県', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => __( '東京都', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'address_locality' => array(
+                        'label'       => __( '市区町村', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => __( '千代田区', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'street_address'   => array(
+                        'label'       => __( '番地・建物名', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => __( '千代田1-1 ○○ビル5F', 'kashiwazaki-seo-author-panel-manager' ),
+                        'class'       => 'large-text',
+                    ),
+                    'address_country'  => array(
+                        'label'   => __( '国コード', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'    => __( 'ISO 3166-1 の英字 2 文字（日本は JP）。パネルには表示せず（住所の書き方の切り替えに使います）、構造化データに出力します。', 'kashiwazaki-seo-author-panel-manager' ),
+                        'class'   => 'small-text',
+                        'pattern' => '[A-Za-z]{2}',
+                    ),
+                    'telephone'        => array(
+                        'label'       => __( '電話番号', 'kashiwazaki-seo-author-panel-manager' ),
+                        'type'        => 'tel',
+                        'placeholder' => '+81-3-1234-5678',
+                        'help'        => $tel_help . __( 'パネルには入力したとおりに表示します。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                ),
+            ),
+            array(
+                'title'       => __( 'メール・問い合わせ窓口', 'kashiwazaki-seo-author-panel-manager' ),
+                'description' => __( '入力した項目は、パネルの名前の横の i ボタンの吹き出しと、構造化データ（JSON-LD）に出力します。', 'kashiwazaki-seo-author-panel-manager' ),
+                'fields'      => array(
+                    'email'             => array(
+                        'label' => __( 'メールアドレス', 'kashiwazaki-seo-author-panel-manager' ),
+                        'type'  => 'email',
+                    ),
+                    'contact_type'      => array(
+                        'label'       => __( '問い合わせ窓口の種類', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => 'Customer Service',
+                        'help'        => __( '窓口の用途（contactType）。例: Customer Service / Sales / Technical Support', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'contact_telephone' => array(
+                        'label'       => __( '問い合わせ窓口の電話番号', 'kashiwazaki-seo-author-panel-manager' ),
+                        'type'        => 'tel',
+                        'placeholder' => '+81-3-1234-5678',
+                        'help'        => $tel_help,
+                    ),
+                    'contact_email'     => array(
+                        'label' => __( '問い合わせ窓口のメールアドレス', 'kashiwazaki-seo-author-panel-manager' ),
+                        'type'  => 'email',
+                        'help'  => __( '問い合わせ窓口は、電話番号かメールアドレスのどちらかがあるときだけ出力します。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                ),
+            ),
+            array(
+                'title'       => __( '法人情報', 'kashiwazaki-seo-author-panel-manager' ),
+                'description' => __( '入力した項目は、パネルの名前の横の i ボタンの吹き出しと、構造化データ（JSON-LD）に出力します。', 'kashiwazaki-seo-author-panel-manager' ),
+                'fields'      => array(
+                    'legal_name'             => array(
+                        'label' => __( '正式名称（登記上の名称）', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'  => __( '「名前」と異なる場合に入力してください（legalName）。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'founding_date'          => array(
+                        'label'       => __( '設立日', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => '2012-06-26',
+                        'pattern'     => '\d{4}(-\d{2}(-\d{2})?)?',
+                        'help'        => __( 'YYYY-MM-DD 形式。年だけ（YYYY）・年月だけ（YYYY-MM）も入力できます。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'number_of_employees'    => array(
+                        'label'       => __( '従業員数', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => '50',
+                        'help'        => __( '人数（例: 50）か範囲（例: 100-999）。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'tax_id'                 => array(
+                        'label' => __( '税務上の識別番号（taxID）', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'  => __( '例: 法人番号（13 桁）。国コードと同じ国の番号を入力してください。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'vat_id'                 => array(
+                        'label' => __( 'VAT 登録番号（vatID）', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'  => __( '付加価値税（VAT）の登録番号。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'iso6523_code'           => array(
+                        'label'       => __( 'ISO 6523 コード', 'kashiwazaki-seo-author-panel-manager' ),
+                        'placeholder' => '0199:724500PMK2A2M1SQQ228',
+                        'help'        => __( '識別体系の番号（ICD）、コロン、ID の順に入力します。0060 = DUNS、0088 = GLN、0199 = LEI。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'duns'                   => array(
+                        'label' => __( 'DUNS 番号', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'  => __( 'Google は ISO 6523 コード（0060:）での指定を推奨しています。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'lei_code'               => array(
+                        'label' => __( 'LEI コード', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'  => __( 'Google は ISO 6523 コード（0199:）での指定を推奨しています。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'global_location_number' => array(
+                        'label' => __( 'GLN（GS1 Global Location Number）', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                    'naics'                  => array(
+                        'label' => __( 'NAICS コード', 'kashiwazaki-seo-author-panel-manager' ),
+                        'help'  => __( '北米産業分類システムの業種コード。', 'kashiwazaki-seo-author-panel-manager' ),
+                    ),
+                ),
+            ),
+        );
     }
 
     /**

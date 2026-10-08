@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.3</span>
+        <span class="version">v1.0.4</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -224,9 +224,11 @@
 
     <div class="screenshot"><img src="images/screenshots/03-corporation-list.png" alt="Corporation 一覧画面" class="lightbox-trigger"></div>
 
-    <h3>Corporation の全フィールド（12 項目）</h3>
+    <h3>Corporation の基本フィールド（12 項目）</h3>
 
     <p>Corporation のフォーム（<code>admin/views/corporation-form.php</code>）は Person から <code>job_title</code> / <code>bio</code> / <code>image_url</code> を取り除き、<code>description</code>（説明）と <code>logo_url</code>（ロゴ画像）に置き換えた構成になっています。</p>
+
+    <p>このほか、住所・電話番号・メール・法人情報などの任意項目が 20 あります（v1.0.4 で追加）。<a href="#org-details">住所・連絡先・法人情報</a>を参照してください。</p>
 
     <table>
         <thead>
@@ -361,9 +363,11 @@
 
     <div class="screenshot"><img src="images/screenshots/04-organization-list.png" alt="Organization 一覧画面" class="lightbox-trigger"></div>
 
-    <h3>Organization の全フィールド（12 項目）</h3>
+    <h3>Organization の基本フィールド（12 項目）</h3>
 
     <p>Organization のフォーム（<code>admin/views/organization-form.php</code>）のカラム構成は Corporation と完全に同一ですが、独立した DB テーブル <code>{prefix}apm_organizations</code> に保存され、Schema.org の型も異なります。Corporation と混在させず、営利法人以外は必ず Organization タブで登録してください。</p>
+
+    <p>このほか、住所・電話番号・メール・法人情報などの任意項目が 20 あります（v1.0.4 で追加）。<a href="#org-details">住所・連絡先・法人情報</a>を参照してください。</p>
 
     <table>
         <thead>
@@ -474,6 +478,243 @@
     <div class="callout callout-tip">
         <div class="callout-title">Corporation と Organization の使い分け</div>
         <p>一般的な営利企業（株式会社・合同会社等）は <strong>Corporation</strong>、学会・研究所・NPO・業界団体・運営メディア（ブランド名）などは <strong>Organization</strong> に登録してください。両者はテーブルも @id の接頭辞（<code>#corporation-{id}</code> / <code>#organization-{id}</code>）も分かれており、JSON-LD 上では別エンティティとして扱われます。</p>
+    </div>
+
+    <h2 id="org-details">住所・連絡先・法人情報（Corporation / Organization 共通）</h2>
+
+    <p>Corporation と Organization の編集画面には、基本の項目の下に「住所・電話番号」「メール・問い合わせ窓口」「法人情報」の 3 つのまとまりがあります（v1.0.4 で追加）。どれも任意で、空欄の項目は出力しません。入力した項目は<strong>すべて構造化データ（JSON-LD）に出力</strong>します。パネルでは、<strong>住所と電話番号を説明文の下</strong>に表示し、<strong>入力した項目の一覧を名前の横の i ボタンの吹き出し</strong>に表示します。Person にはこの項目はありません。</p>
+
+    <div class="screenshot"><img src="images/screenshots/11-org-details-form.png" alt="Corporation 編集画面の住所・電話番号、メール・問い合わせ窓口、法人情報の入力欄" class="lightbox-trigger"><div class="caption">Corporation 編集画面の下部。Organization の編集画面にも同じ項目があります</div></div>
+
+    <h3>項目一覧（20 項目）</h3>
+
+    <p>DB の列はすべて <code>varchar(255)</code> NOT NULL、既定値は <code>''</code> です。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:18%;">UI 表示名</th>
+                <th style="width:16%;">内部キー<br>(POST / DB)</th>
+                <th style="width:22%;">JSON-LD のプロパティ</th>
+                <th style="width:10%;">パネル</th>
+                <th>入力のきまり</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>郵便番号</td>
+                <td><code>postal_code</code></td>
+                <td><code>address.postalCode</code></td>
+                <td>説明文の下・吹き出し</td>
+                <td>自由入力（例: <code>100-0001</code>）</td>
+            </tr>
+            <tr>
+                <td>都道府県</td>
+                <td><code>address_region</code></td>
+                <td><code>address.addressRegion</code></td>
+                <td>説明文の下・吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>市区町村</td>
+                <td><code>address_locality</code></td>
+                <td><code>address.addressLocality</code></td>
+                <td>説明文の下・吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>番地・建物名</td>
+                <td><code>street_address</code></td>
+                <td><code>address.streetAddress</code></td>
+                <td>説明文の下・吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>国コード</td>
+                <td><code>address_country</code></td>
+                <td><code>address.addressCountry</code></td>
+                <td>―（住所の書き方の切り替えに使用）</td>
+                <td>ISO 3166-1 の英字 2 文字。小文字は大文字に直して保存します。未入力の場合、入力欄には <code>JP</code> が入った状態で表示されます</td>
+            </tr>
+            <tr>
+                <td>電話番号</td>
+                <td><code>telephone</code></td>
+                <td><code>telephone</code></td>
+                <td>説明文の下（<code>tel:</code> リンク）・吹き出し</td>
+                <td>自由入力。国番号と市外局番を含める書き方（例: <code>+81-3-1234-5678</code>）を推奨</td>
+            </tr>
+            <tr>
+                <td>メールアドレス</td>
+                <td><code>email</code></td>
+                <td><code>email</code></td>
+                <td>吹き出し</td>
+                <td>メールアドレスの形式（<code>sanitize_email()</code> で確認）</td>
+            </tr>
+            <tr>
+                <td>問い合わせ窓口の種類</td>
+                <td><code>contact_type</code></td>
+                <td><code>contactPoint.contactType</code></td>
+                <td>吹き出し</td>
+                <td>自由入力（例: <code>Customer Service</code>）</td>
+            </tr>
+            <tr>
+                <td>問い合わせ窓口の電話番号</td>
+                <td><code>contact_telephone</code></td>
+                <td><code>contactPoint.telephone</code></td>
+                <td>吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>問い合わせ窓口のメールアドレス</td>
+                <td><code>contact_email</code></td>
+                <td><code>contactPoint.email</code></td>
+                <td>吹き出し</td>
+                <td>メールアドレスの形式</td>
+            </tr>
+            <tr>
+                <td>正式名称（登記上の名称）</td>
+                <td><code>legal_name</code></td>
+                <td><code>legalName</code></td>
+                <td>吹き出し</td>
+                <td>自由入力。「名前」と異なる場合に入力</td>
+            </tr>
+            <tr>
+                <td>設立日</td>
+                <td><code>founding_date</code></td>
+                <td><code>foundingDate</code></td>
+                <td>吹き出し</td>
+                <td><code>YYYY-MM-DD</code> / <code>YYYY-MM</code> / <code>YYYY</code>。実在しない日付は不可</td>
+            </tr>
+            <tr>
+                <td>従業員数</td>
+                <td><code>number_of_employees</code></td>
+                <td><code>numberOfEmployees</code>（<code>QuantitativeValue</code>）</td>
+                <td>吹き出し</td>
+                <td>人数（<code>50</code>）か範囲（<code>100-999</code>）。全角数字・カンマ・「〜」も受け付け、半角に直して保存</td>
+            </tr>
+            <tr>
+                <td>税務上の識別番号（taxID）</td>
+                <td><code>tax_id</code></td>
+                <td><code>taxID</code></td>
+                <td>吹き出し</td>
+                <td>自由入力（例: 法人番号 13 桁）</td>
+            </tr>
+            <tr>
+                <td>VAT 登録番号（vatID）</td>
+                <td><code>vat_id</code></td>
+                <td><code>vatID</code></td>
+                <td>吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>ISO 6523 コード</td>
+                <td><code>iso6523_code</code></td>
+                <td><code>iso6523Code</code></td>
+                <td>吹き出し</td>
+                <td>自由入力。識別体系の番号（ICD）、コロン、ID の順（例: <code>0199:724500PMK2A2M1SQQ228</code>）</td>
+            </tr>
+            <tr>
+                <td>DUNS 番号</td>
+                <td><code>duns</code></td>
+                <td><code>duns</code></td>
+                <td>吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>LEI コード</td>
+                <td><code>lei_code</code></td>
+                <td><code>leiCode</code></td>
+                <td>吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>GLN（GS1 Global Location Number）</td>
+                <td><code>global_location_number</code></td>
+                <td><code>globalLocationNumber</code></td>
+                <td>吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+            <tr>
+                <td>NAICS コード</td>
+                <td><code>naics</code></td>
+                <td><code>naics</code></td>
+                <td>吹き出し</td>
+                <td>自由入力</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>出力のきまり</h3>
+
+    <ul>
+        <li>住所（<code>address</code>）は、郵便番号・都道府県・市区町村・番地・建物名のどれか 1 つでも入っているときだけ出力します。国コードだけでは出力しません（国コードには既定で <code>JP</code> が入るため）。</li>
+        <li>問い合わせ窓口（<code>contactPoint</code>）は、窓口の電話番号かメールアドレスがあるときだけ出力します。窓口の種類だけでは出力しません。</li>
+        <li>従業員数は、人数なら <code>value</code>、範囲なら <code>minValue</code> / <code>maxValue</code> で出力します。</li>
+        <li>書式が決まっている項目（国コード・メールアドレス・設立日・従業員数）に合わない値を入れて保存すると、その項目は空欄で保存され、画面上部に「「〇〇」は書式が正しくないため、空欄として保存しました。」と表示されます。国コード・メールアドレス・設立日は、保存する前にブラウザも書式を確認します。</li>
+    </ul>
+
+    <h3>パネルでの表示</h3>
+
+    <div class="screenshot"><img src="images/screenshots/10-org-contact-panel.png" alt="住所と電話番号を表示した Corporation のパネル" class="lightbox-trigger"><div class="caption">住所と電話番号は説明文の下に表示され、名前の横に i ボタンが付きます</div></div>
+
+    <p>住所は、地図ピンのアイコン付きで 1 行にまとめて表示します。国コードが <code>JP</code> か空欄なら「〒郵便番号 都道府県市区町村番地・建物名」、それ以外の国なら「番地, 市区町村, 州 郵便番号」の順です。電話番号は受話器のアイコン付きで、入力したとおりの文字で表示し、タップすると電話をかけられるリンク（<code>tel:</code>）にします。アイコンには読み上げ用の名前（「住所」「電話番号」）が付いています。</p>
+
+    <h4>名前の横の吹き出し（i ボタン）</h4>
+
+    <div class="screenshot"><img src="images/screenshots/12-org-info-tooltip.png" alt="名前の横の i ボタンにマウスを乗せて、住所・連絡先・法人情報の吹き出しを表示したパネル" class="lightbox-trigger"><div class="caption">i ボタンにマウスを乗せると、入力した項目の一覧が吹き出しで出ます</div></div>
+
+    <p>住所・連絡先・法人情報のどれかが入力されていると、名前の横に <strong>i ボタン</strong>（<code>dashicons-info-outline</code>）が付きます。ボタンにマウスを乗せるか、タップするか、キーボードで移動すると、<strong>入力した項目の「項目名」と「内容」の一覧が吹き出しで</strong>出ます。国コードしか入っていない場合（既定の <code>JP</code> だけの場合）は、ボタンは出ません。</p>
+
+    <ul>
+        <li>並びは入力画面と同じです。住所は 1 行にまとめ、設立日は「2012年6月26日」、従業員数は「50人」「100〜999人」の形で表示します。国コードは住所の書き方の切り替えにだけ使い、一覧には出しません。</li>
+        <li>吹き出しは、名前の行のすぐ下に、パネルの情報欄（名前・説明文の列）の幅いっぱいで出します。i ボタンの位置に合わせないので、名前が長くても画面からはみ出しません。画面幅が 600px 以下のときは、項目名と内容を縦に並べます。</li>
+        <li>吹き出しは <code>role="tooltip"</code> で、ボタンから <code>aria-describedby</code> で参照しています。<strong>Esc キー</strong>で閉じられます。この Esc の処理だけは小さなスクリプト（ハンドル <code>kapm-panel-info</code>、フッターにインライン出力）で行い、吹き出しのあるパネルを出したページにだけ読み込みます。表示自体は CSS だけで行います。</li>
+    </ul>
+
+    <h3>JSON-LD の出力例</h3>
+
+    <p>すべての項目を入力した Corporation の出力（整形済み、ほかの項目は省略）:</p>
+
+    <pre><code>{
+  "@type": "Corporation",
+  "@id": "https://example.com/#corporation-2",
+  "name": "株式会社サンプル",
+  "url": "https://example.com/",
+  "legalName": "Sample Kabushiki Kaisha",
+  "email": "info@example.com",
+  "telephone": "+81-3-1234-5678",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "千代田1-1 サンプルビル5F",
+    "addressLocality": "千代田区",
+    "addressRegion": "東京都",
+    "postalCode": "100-0001",
+    "addressCountry": "JP"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Customer Service",
+    "telephone": "+81-3-1234-0000",
+    "email": "support@example.com"
+  },
+  "foundingDate": "2012-06-26",
+  "numberOfEmployees": {
+    "@type": "QuantitativeValue",
+    "minValue": 100,
+    "maxValue": 999
+  },
+  "taxID": "1234567890123",
+  "vatID": "T1234567890123",
+  "iso6523Code": "0199:724500PMK2A2M1SQQ228",
+  "duns": "123456789",
+  "leiCode": "724500PMK2A2M1SQQ228",
+  "globalLocationNumber": "4512345678906",
+  "naics": "541810"
+}</code></pre>
+
+    <div class="callout callout-note">
+        <div class="callout-title">Google のドキュメントとの対応</div>
+        <p>項目と書式は、Google 検索セントラルの <a href="https://developers.google.com/search/docs/appearance/structured-data/organization" target="_blank" rel="noopener">Organization の構造化データ</a>に合わせています。同ページによると必須の項目はなく、当てはまる項目をできるだけ入れることが勧められています。また、組織の情報はホームページか組織を説明する 1 ページに置くことを勧めており、すべてのページに入れる必要はないとしています。ネットショップ向けの返品・配送・会員プログラム（<code>hasMerchantReturnPolicy</code> など）は、このプラグインの対象外です。</p>
     </div>
 
     <h2>Role から Schema.org プロパティへの変換（role_to_property）</h2>
@@ -657,7 +898,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.4</p>
     </footer>
 </main>
 

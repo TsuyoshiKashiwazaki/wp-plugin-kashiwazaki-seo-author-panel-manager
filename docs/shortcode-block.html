@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.3</span>
+        <span class="version">v1.0.4</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -323,7 +323,7 @@
 
     <div class="callout callout-note">
         <div class="callout-title">省略プロパティ</div>
-        <p>未入力のフィールドに対応する JSON プロパティは出力されません（<code>''</code> や <code>null</code> ではなくキー自体が省略されます）。例えば Person で英語名が未入力なら <code>alternateName</code> は存在せず、sameAs が 1 件も有効 URL を含まなければ <code>sameAs</code> プロパティそのものが出ません。</p>
+        <p>未入力のフィールドに対応する JSON プロパティは出力されません（<code>''</code> や <code>null</code> ではなくキー自体が省略されます）。例えば Person で英語名が未入力なら <code>alternateName</code> は存在せず、sameAs が 1 件も有効 URL を含まなければ <code>sameAs</code> プロパティそのものが出ません。Corporation / Organization に住所・連絡先・法人情報を入力した場合は <code>address</code> / <code>telephone</code> / <code>legalName</code> などのプロパティも出力されます（v1.0.4 で追加。出力例は<a href="entity-management.html#org-details">エンティティ管理</a>を参照）。</p>
     </div>
 
     <h2>JSON-LD 出力（Custom モード）</h2>
@@ -428,7 +428,7 @@
 
     <div class="callout callout-note">
         <div class="callout-title">CSS の読み込み条件</div>
-        <p>フロントエンド CSS（<code>public/css/panel-style.css</code>、実測 <strong>8,042 バイト</strong>）は、ショートコードが <code>render()</code> される時点で <code>wp_enqueue_style()</code> されます。著者パネルが挿入されていないページでは CSS は読み込まれません。フロントエンド側で独自 JavaScript は一切使用しません（Core Web Vitals に追加の JS 評価コストを発生させません）。</p>
+        <p>フロントエンド CSS（<code>public/css/panel-style.css</code>、実測 <strong>11,999 バイト</strong>）は、ショートコードが <code>render()</code> される時点で <code>wp_enqueue_style()</code> されます。著者パネルが挿入されていないページでは CSS は読み込まれません。フロントエンドの独自 JavaScript は、詳細情報の吹き出しを Esc キーで閉じるための数行のインラインスクリプト（<code>kapm-panel-info</code>）だけで、吹き出しのあるパネルを出したときだけフッターに読み込みます。</p>
     </div>
 
     <h2>sameAs アイコンマッピング全 45 ドメイン</h2>
@@ -545,7 +545,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.4</p>
     </footer>
 </main>
 

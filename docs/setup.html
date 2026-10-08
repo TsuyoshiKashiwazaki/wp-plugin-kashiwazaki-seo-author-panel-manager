@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.3</span>
+        <span class="version">v1.0.4</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -80,12 +80,12 @@
             </tr>
             <tr>
                 <td><code>{prefix}apm_corporations</code></td>
-                <td>14</td>
-                <td>企業エンティティ（<code>Corporation</code> 型）。description / logo_url / url / same_as / panel_style / panel_color / 3 色 等</td>
+                <td>34</td>
+                <td>企業エンティティ（<code>Corporation</code> 型）。description / logo_url / url / same_as / panel_style / panel_color / 3 色、住所・連絡先・法人情報の 20 列 等</td>
             </tr>
             <tr>
                 <td><code>{prefix}apm_organizations</code></td>
-                <td>14</td>
+                <td>34</td>
                 <td>組織エンティティ（<code>Organization</code> 型）。カラム構成は Corporation と同一</td>
             </tr>
         </tbody>
@@ -100,7 +100,7 @@
 
     <div class="callout callout-tip">
         <div class="callout-title">更新時の列の追加は自動</div>
-        <p>v1.0.3 でカラーの 4 列（<code>panel_color</code> / <code>color_bg</code> / <code>color_text</code> / <code>color_accent</code>）が増えました。ファイルを上書きして更新した場合も、次の読み込み時に <code>plugins_loaded</code> でオプション <code>kapm_db_version</code> を確認し、古ければ <code>dbDelta()</code> で足りない列を追加します。再有効化や手作業は不要で、既存のデータはそのまま残ります。</p>
+        <p>v1.0.3 でカラーの 4 列（<code>panel_color</code> / <code>color_bg</code> / <code>color_text</code> / <code>color_accent</code>）が増えました。v1.0.4 では Corporation / Organization の 2 テーブルに住所・連絡先・法人情報の 20 列が増えました。ファイルを上書きして更新した場合も、次の読み込み時に <code>plugins_loaded</code> でオプション <code>kapm_db_version</code> を確認し、古ければ <code>dbDelta()</code> で足りない列を追加します。再有効化や手作業は不要で、既存のデータはそのまま残ります。</p>
     </div>
 
     <h2>管理画面の構成</h2>
@@ -140,7 +140,7 @@
 
     <h2>パネルのデザインとカラー一覧</h2>
 
-    <p>各エンティティ編集画面の「パネルのデザイン」と「パネルのカラー」の 2 つのセレクトから選びます。形と色を別々に選べるので、たとえば「カード × ダーク」のような組み合わせもできます。CSS は <code>public/css/panel-style.css</code>（実測 8,042 バイト）で定義されており、表示に JavaScript は使用しません。</p>
+    <p>各エンティティ編集画面の「パネルのデザイン」と「パネルのカラー」の 2 つのセレクトから選びます。形と色を別々に選べるので、たとえば「カード × ダーク」のような組み合わせもできます。CSS は <code>public/css/panel-style.css</code>（実測 11,999 バイト）で定義されており、表示に JavaScript は使用しません（吹き出しを Esc キーで閉じる処理だけ、数行のスクリプトを使います）。</p>
 
     <table>
         <thead>
@@ -230,7 +230,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.4</p>
     </footer>
 </main>
 

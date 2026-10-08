@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.3</span>
+        <span class="version">v1.0.4</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -35,7 +35,7 @@
     <div class="feature-cards">
         <div class="feature-card">
             <h3>エンティティ管理</h3>
-            <p>Person / Corporation / Organization の 3 タブで個別管理。パネルのデザイン（形）とカラー（色）はエンティティごとに別々に選べます。WordPress ユーザーとは関連付きません。</p>
+            <p>Person / Corporation / Organization の 3 タブで個別管理。パネルのデザイン（形）とカラー（色）はエンティティごとに別々に選べます。Corporation / Organization には住所・電話番号・法人情報も任意で入力できます。WordPress ユーザーとは関連付きません。</p>
         </div>
         <div class="feature-card">
             <h3>JSON-LD 出力</h3>
@@ -56,7 +56,7 @@
     <p>Custom モードでは、他の SEO プラグインが出力した Article / NewsArticle / WebPage スキーマの <code>@id</code> を指定し、そのノードに <code>author</code> / <code>publisher</code> / <code>editor</code> / <code>reviewedBy</code> などのプロパティとしてエンティティを紐付けます。これにより、ページ内の構造化データに「この記事の著者／発行者はこのエンティティ」という関連を明示でき、構造化データグラフの整合性を高める助けになります。</p>
 
     <h3>Core Web Vitals への影響</h3>
-    <p>フロントエンドで読み込む CSS は <code>public/css/panel-style.css</code> のみで、実測 <strong>8,042 バイト</strong>（約 7.9KB）です。フロントエンド側での JavaScript は一切使用しません（管理画面・ブロックエディタ用の JS を除く）。CSS 自体も、ショートコード／ブロックが実際に出力される記事にのみ <code>wp_enqueue_style()</code> で読み込まれるため、パネルを挿入していないページでは読み込みゼロです。これらの事実から、Core Web Vitals の計測値に本プラグインが与える追加負荷は小さく抑えられる設計となっています。</p>
+    <p>フロントエンドで読み込む CSS は <code>public/css/panel-style.css</code> のみで、実測 <strong>11,999 バイト</strong>（約 11.7KB）です。フロントエンドの JavaScript は、Corporation / Organization の詳細情報の吹き出しを Esc キーで閉じるための数行のインラインスクリプトだけで、吹き出しのあるパネルを出したページにだけ読み込みます（管理画面・ブロックエディタ用の JS を除く）。CSS 自体も、ショートコード／ブロックが実際に出力される記事にのみ <code>wp_enqueue_style()</code> で読み込まれるため、パネルを挿入していないページでは読み込みゼロです。これらの事実から、Core Web Vitals の計測値に本プラグインが与える追加負荷は小さく抑えられる設計となっています。</p>
 
     <h3>生成 AI（GEO）での引用可能性</h3>
     <p>JSON-LD で出力された著者・組織の情報は、生成 AI がコンテンツの信頼性や著者の専門性を参照する際の機械可読な入力データになります。<code>sameAs</code> プロパティは外部プロフィール（X / LinkedIn / GitHub / ORCID / Google Scholar 等）へのリンクとして出力され、エンティティの同一性確認に利用できる情報を提供します。AI 側の引用動作は各サービスの判断に依存するため断定はできませんが、構造化された著者情報を提供することで AI が参照しやすい形を整えることはできます。</p>
@@ -132,7 +132,7 @@
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.4</p>
     </footer>
 </main>
 

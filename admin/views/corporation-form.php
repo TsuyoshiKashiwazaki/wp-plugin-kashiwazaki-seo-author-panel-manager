@@ -58,6 +58,8 @@
         <?php include __DIR__ . '/_panel-style-select.php'; ?>
     </table>
 
+    <?php include __DIR__ . '/_org-details-fields.php'; ?>
+
     <?php submit_button( $item ? __( '更新', 'kashiwazaki-seo-author-panel-manager' ) : __( '追加', 'kashiwazaki-seo-author-panel-manager' ) ); ?>
 </form>
 <?php if ( $item ) : $usage_type = 'corporations'; $usage_id = (int) $item['id']; include __DIR__ . '/_usage-posts.php'; endif; ?>

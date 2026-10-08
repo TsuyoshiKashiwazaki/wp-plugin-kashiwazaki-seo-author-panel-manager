@@ -3,6 +3,19 @@
 このプロジェクトのすべての変更はこのファイルに記録されます。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/) に基づいています。
 
+## [1.0.4] - 2026-10-08
+
+### 追加
+- Corporation / Organization の編集画面に、任意の **住所・電話番号**（郵便番号 / 都道府県 / 市区町村 / 番地・建物名 / 国コード / 電話番号）、**メール・問い合わせ窓口**（メールアドレス / 窓口の種類・電話番号・メールアドレス）、**法人情報**（正式名称 / 設立日 / 従業員数 / taxID / vatID / ISO 6523 コード / DUNS / LEI / GLN / NAICS）の 20 項目を追加。項目と書式は Google 検索セントラルの Organization 構造化データのドキュメントに合わせた。
+- 住所と電話番号をパネルの説明文の下に表示（アイコン付き。電話番号は `tel:` リンク）。国コードが JP か空なら「〒郵便番号 都道府県市区町村番地」、それ以外の国は「番地, 市区町村, 州 郵便番号」の順。
+- 住所・連絡先・法人情報のどれかが入力されていると、パネルの名前の横に **i ボタン** を表示し、マウスを乗せる・タップする・キーボードで移動すると、入力した項目の「項目名」と「内容」の一覧を吹き出しで表示（`role="tooltip"` + `aria-describedby`）。表示は CSS だけで行い、Esc キーで閉じる処理だけを数行のインラインスクリプト（`kapm-panel-info`）で行う。スクリプトは吹き出しのあるパネルを出したページにだけ読み込む。吹き出しは名前の行の下にパネルの情報欄の幅いっぱいで出し (i ボタンの位置に合わせないので名前が長くても画面からはみ出さない)、画面幅 600px 以下では項目名と内容を縦に並べる。
+- JSON-LD に `address`（`PostalAddress`）/ `telephone` / `email` / `contactPoint`（`ContactPoint`）/ `legalName` / `foundingDate` / `numberOfEmployees`（`QuantitativeValue`。人数は `value`、範囲は `minValue` / `maxValue`）/ `taxID` / `vatID` / `iso6523Code` / `duns` / `leiCode` / `globalLocationNumber` / `naics` を出力。空欄の項目は出力しない。住所は国コード以外の項目が 1 つでもあるとき、問い合わせ窓口は電話番号かメールアドレスがあるときだけ出力する。
+- 国コード（英字 2 文字）・メールアドレス・設立日（YYYY / YYYY-MM / YYYY-MM-DD の実在する日付）・従業員数（人数か範囲。全角数字・カンマ・「〜」も可）の書式を保存時に確認し、合わない値は空欄で保存して管理画面に警告を表示。
+
+### 変更
+- データベースの `apm_corporations` / `apm_organizations` に 20 列を追加（`kapm_db_version` を 3 に更新。ファイル上書き更新でも次の読み込み時に `dbDelta()` で列を追加）。
+- 保存時の値の無害化を `KAPM_Database::sanitize_value()` にまとめた。
+
 ## [1.0.3] - 2026-10-05
 
 ### 追加
@@ -96,6 +109,7 @@
 - WCAG AA準拠のコントラスト比（Darkテーマ含む全デザイン）
 - uninstall.phpによるアンインストール時テーブル削除
 
+[1.0.4]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.4
 [1.0.3]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.3
 [1.0.2]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.2
 [1.0.1]: https://github.com/TsuyoshiKashiwazaki/wp-plugin-kashiwazaki-seo-author-panel-manager/releases/tag/v1.0.1

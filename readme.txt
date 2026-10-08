@@ -4,7 +4,7 @@ Tags: author, schema, json-ld, structured-data, seo
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,6 +24,7 @@ Kashiwazaki SEO Author Panel Managerは、WordPressユーザーとは独立し�
 * 画像のデザイン（丸 / 角丸の四角 / 四角 / 楕円 / 切り抜かない）を記事ごとに選択
 * ドラッグまたは ↑↓ ボタンでパネルの並び順を変更
 * パネルのデザイン（標準 / アクセント / ミニマル / カード）とカラー（おまかせ / グレー / 白 / ダーク / ブルー / グリーン / オレンジ / カスタム）を別々に設定
+* Corporation / Organization の住所・連絡先・法人情報（住所と電話番号はパネルに表示、入力した項目を吹き出し（国コードは除く）と構造化データに出力）
 * sameAs URLのソーシャルアイコン自動表示
 * メディアライブラリからの画像選択
 
@@ -44,6 +45,13 @@ Kashiwazaki SEO Author Panel Managerは、WordPressユーザーとは独立し�
 はい。本プラグインは独自のデータベーステーブルでエンティティを管理するため、WordPressユーザーとは完全に独立しています。
 
 == Changelog ==
+
+= 1.0.4 =
+* 機能追加: Corporation / Organization に住所・電話番号・メール・問い合わせ窓口・法人情報（正式名称・設立日・従業員数・taxID・vatID・ISO 6523 コード・DUNS・LEI・GLN・NAICS）の任意項目 20 個を追加
+* 機能追加: 住所と電話番号をパネルに表示（電話番号は tel: リンク）。全項目を Schema.org JSON-LD（address / telephone / email / contactPoint / legalName / foundingDate / numberOfEmployees 等）に出力
+* 機能追加: 入力した住所・連絡先・法人情報の一覧を、パネルの名前の横の i ボタンの吹き出しで表示（Esc キーで閉じる）
+* 機能追加: 国コード・メールアドレス・設立日・従業員数の書式が合わないときは空欄で保存し、管理画面に警告を表示
+* 変更: Corporation / Organization のテーブルに 20 列を追加（ファイル上書き更新時も自動で追加）
 
 = 1.0.3 =
 * 機能追加: ブロックエディタで、エンティティごとに画像のデザイン（丸 / 角丸の四角 / 四角 / 楕円（縦長・横長）/ 切り抜かない）を選べるようにした

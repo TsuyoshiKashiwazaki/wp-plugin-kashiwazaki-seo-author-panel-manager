@@ -12,7 +12,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Author Panel Manager</h2>
-        <span class="version">v1.0.3</span>
+        <span class="version">v1.0.4</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -181,9 +181,24 @@
         </div>
     </div>
 
+    <h3 id="org-details-invalid">「〇〇は書式が正しくないため、空欄として保存しました」と表示される</h3>
+
+    <p><strong>原因:</strong> Corporation / Organization の任意項目のうち、書式が決まっている項目（国コード・メールアドレス・問い合わせ窓口のメールアドレス・設立日・従業員数）に、その書式に合わない値を入れて保存した。該当する項目だけが空欄で保存され、ほかの項目はそのまま保存されています（v1.0.4 で追加）。</p>
+
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <p>表示された項目を、次の書式で入れ直して保存してください。国コードは英字 2 文字（例: <code>JP</code>）、メールアドレスは <code>info@example.com</code> の形（<code>@</code> の後ろにドメイン名と <code>.</code> が必要）、設立日は <code>2012-06-26</code> / <code>2012-06</code> / <code>2012</code> のいずれかで実在する日付、従業員数は人数（<code>50</code>）か範囲（<code>100-999</code>）です。詳しくは<a href="entity-management.html#org-details">エンティティ管理の「住所・連絡先・法人情報」</a>を参照してください。</p>
+        </div>
+    </div>
+
+    <h3 id="org-details-hidden">入力した住所や問い合わせ窓口が出力されない</h3>
+
+    <p><strong>原因:</strong> 出力の条件を満たしていない。住所は郵便番号・都道府県・市区町村・番地のどれか 1 つ、問い合わせ窓口は電話番号かメールアドレスが入っているときだけ出力します（国コードだけ、窓口の種類だけでは出力しません）。また、パネルの説明文の下に出すのは住所と電話番号だけです。そのほかの項目は、名前の横の i ボタンの吹き出しと、構造化データ（JSON-LD）に出ます。出力モードが「出力しない」の記事では、JSON-LD は出ません。</p>
+
     <h2 id="db-schema">技術仕様: データベーススキーマ</h2>
 
-    <p>プラグイン有効化時に <code>KAPM_Database::create_tables()</code> が <code>dbDelta()</code> で 3 テーブルを生成します。v1.0.3 からはテーブル構造のバージョンをオプション <code>kapm_db_version</code> に記録し、ファイルの上書き更新後も <code>plugins_loaded</code> で古い構造を検出して足りない列を追加します（v1.0.3 で追加した 4 列はテーブルの末尾に付きます）。以下は <code>class-database.php</code> の実定義に基づく完全なカラム一覧です。<code>{prefix}</code> は WordPress の <code>$wpdb-&gt;prefix</code>（通常 <code>wp_</code>）に置換されます。</p>
+    <p>プラグイン有効化時に <code>KAPM_Database::create_tables()</code> が <code>dbDelta()</code> で 3 テーブルを生成します。v1.0.3 からはテーブル構造のバージョンをオプション <code>kapm_db_version</code> に記録し、ファイルの上書き更新後も <code>plugins_loaded</code> で古い構造を検出して足りない列を追加します（v1.0.3 で追加した 4 列と v1.0.4 で追加した 20 列は、既存のテーブルでは末尾に付きます）。以下は <code>class-database.php</code> の実定義に基づく完全なカラム一覧です。<code>{prefix}</code> は WordPress の <code>$wpdb-&gt;prefix</code>（通常 <code>wp_</code>）に置換されます。</p>
 
     <h3><code>{prefix}apm_persons</code> テーブル</h3>
     <table>
@@ -241,12 +256,32 @@
             <tr><td><code>color_bg</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムの背景色（<code>#rrggbb</code>。v1.0.3 で追加）</td></tr>
             <tr><td><code>color_text</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムの文字色（v1.0.3 で追加）</td></tr>
             <tr><td><code>color_accent</code></td><td><code>varchar(7)</code></td><td>NOT NULL</td><td><code>''</code></td><td>カスタムのアクセント色（v1.0.3 で追加）</td></tr>
+            <tr><td><code>postal_code</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>郵便番号（v1.0.4 で追加）</td></tr>
+            <tr><td><code>address_region</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>都道府県（v1.0.4 で追加）</td></tr>
+            <tr><td><code>address_locality</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>市区町村（v1.0.4 で追加）</td></tr>
+            <tr><td><code>street_address</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>番地・建物名（v1.0.4 で追加）</td></tr>
+            <tr><td><code>address_country</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>国コード（ISO 3166-1 の英字 2 文字）（v1.0.4 で追加）</td></tr>
+            <tr><td><code>telephone</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>電話番号（v1.0.4 で追加）</td></tr>
+            <tr><td><code>email</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>メールアドレス（v1.0.4 で追加）</td></tr>
+            <tr><td><code>contact_type</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>問い合わせ窓口の種類（v1.0.4 で追加）</td></tr>
+            <tr><td><code>contact_telephone</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>問い合わせ窓口の電話番号（v1.0.4 で追加）</td></tr>
+            <tr><td><code>contact_email</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>問い合わせ窓口のメールアドレス（v1.0.4 で追加）</td></tr>
+            <tr><td><code>legal_name</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>正式名称（v1.0.4 で追加）</td></tr>
+            <tr><td><code>founding_date</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>設立日（YYYY / YYYY-MM / YYYY-MM-DD）（v1.0.4 で追加）</td></tr>
+            <tr><td><code>number_of_employees</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>従業員数（人数か「最小-最大」）（v1.0.4 で追加）</td></tr>
+            <tr><td><code>tax_id</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>税務上の識別番号（v1.0.4 で追加）</td></tr>
+            <tr><td><code>vat_id</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>VAT 登録番号（v1.0.4 で追加）</td></tr>
+            <tr><td><code>iso6523_code</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>ISO 6523 コード（v1.0.4 で追加）</td></tr>
+            <tr><td><code>duns</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>DUNS 番号（v1.0.4 で追加）</td></tr>
+            <tr><td><code>lei_code</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>LEI コード（v1.0.4 で追加）</td></tr>
+            <tr><td><code>global_location_number</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>GLN（v1.0.4 で追加）</td></tr>
+            <tr><td><code>naics</code></td><td><code>varchar(255)</code></td><td>NOT NULL</td><td><code>''</code></td><td>NAICS コード（v1.0.4 で追加）</td></tr>
         </tbody>
     </table>
 
     <h3><code>{prefix}apm_organizations</code> テーブル</h3>
 
-    <p>カラム構成は <code>apm_corporations</code> と完全同一（同じ 14 カラム）ですが、別テーブルに保存されます。JSON-LD では <code>Organization</code> 型、<code>apm_corporations</code> は <code>Corporation</code> 型として出力される点だけが異なります。</p>
+    <p>カラム構成は <code>apm_corporations</code> と完全同一（同じ 34 カラム）ですが、別テーブルに保存されます。JSON-LD では <code>Organization</code> 型、<code>apm_corporations</code> は <code>Corporation</code> 型として出力される点だけが異なります。</p>
 
     <div class="callout callout-note">
         <div class="callout-title">インデックス戦略</div>
@@ -335,7 +370,7 @@
             <tr><td><code>enqueue_block_editor_assets</code></td><td>action</td><td>10</td><td><code>KAPM_Gutenberg::enqueue_editor_assets</code>（エディタ JS 読み込み + <code>kapmData</code> 注入）</td></tr>
             <tr><td><code>rest_api_init</code></td><td>action</td><td>10</td><td><code>KAPM_Gutenberg::register_rest_routes</code>（3 エンドポイント登録）</td></tr>
             <tr><td><code>add_shortcode('author_panel')</code></td><td>shortcode</td><td>-</td><td><code>KAPM_Shortcode::render</code></td></tr>
-            <tr><td><code>wp_enqueue_scripts</code></td><td>action</td><td>10</td><td><code>KAPM_Shortcode::enqueue_styles</code>（<code>panel-style.css</code> の register）</td></tr>
+            <tr><td><code>wp_enqueue_scripts</code></td><td>action</td><td>10</td><td><code>KAPM_Shortcode::enqueue_styles</code>（<code>panel-style.css</code> と、吹き出しを Esc キーで閉じるインラインスクリプト <code>kapm-panel-info</code> の register）</td></tr>
             <tr><td><code>template_redirect</code></td><td>action</td><td>10</td><td><code>KAPM_Shortcode::preparse_custom_mode</code>（Custom モードの先行パース）</td></tr>
             <tr><td><code>wp_head</code></td><td>action</td><td>99</td><td><code>KAPM_Shortcode::output_custom_json_ld</code>（Custom JSON-LD 出力）</td></tr>
             <tr><td><code>admin_menu</code></td><td>action</td><td>10</td><td><code>KAPM_Admin::add_menus</code>（position 81）</td></tr>
@@ -353,8 +388,8 @@
             <tr><th style="width:35%;">項目</th><th>内容</th></tr>
         </thead>
         <tbody>
-            <tr><td>CSS ファイル</td><td><code>public/css/panel-style.css</code>（実測 <strong>8,042 バイト</strong>）。色は CSS 変数（<code>--kapm-bg</code> / <code>--kapm-text</code> / <code>--kapm-accent</code> など）で受け取ります</td></tr>
-            <tr><td>JavaScript</td><td>フロントエンドでは一切使用しません（エディタ / 管理画面を除く）</td></tr>
+            <tr><td>CSS ファイル</td><td><code>public/css/panel-style.css</code>（実測 <strong>11,999 バイト</strong>）。色は CSS 変数（<code>--kapm-bg</code> / <code>--kapm-text</code> / <code>--kapm-accent</code> など）で受け取ります</td></tr>
+            <tr><td>JavaScript</td><td>Corporation / Organization の吹き出し（i ボタン）を Esc キーで閉じるための数行のインラインスクリプト（ハンドル <code>kapm-panel-info</code>）だけ。吹き出しのあるパネルを出したページにだけ読み込みます（v1.0.4 で追加。エディタ / 管理画面を除く）</td></tr>
             <tr><td>CSS の読み込み条件</td><td>ショートコード / ブロックが実際に <code>render()</code> された時のみ <code>wp_enqueue_style()</code></td></tr>
             <tr><td>Standard JSON-LD の出力位置</td><td>ショートコードの戻り値 HTML 末尾（本文内）</td></tr>
             <tr><td>Custom JSON-LD の出力位置</td><td><code>wp_head</code> priority 99（<code>&lt;/head&gt;</code> 直前付近）</td></tr>
@@ -421,7 +456,7 @@ DROP TABLE IF EXISTS {prefix}apm_organizations;</code></pre>
     <div class="step">
         <div class="step-number">1</div>
         <div class="step-body">
-            <p><strong>フロントエンド CSS の読み込み</strong>: ブラウザ DevTools の Network タブで <code>panel-style.css</code>（約 4.5KB）が読み込まれていることを確認します。パネルを挿入していないページでは読み込まれないことも確認してください。</p>
+            <p><strong>フロントエンド CSS の読み込み</strong>: ブラウザ DevTools の Network タブで <code>panel-style.css</code>（約 11.7KB）が読み込まれていることを確認します。パネルを挿入していないページでは読み込まれないことも確認してください。</p>
         </div>
     </div>
     <div class="step">
@@ -475,7 +510,7 @@ DROP TABLE IF EXISTS {prefix}apm_organizations;</code></pre>
 
     <footer class="manual-footer">
         <p>作者: <a href="https://www.tsuyoshikashiwazaki.jp/profile/" target="_blank" rel="noopener">柏崎剛（Tsuyoshi Kashiwazaki）</a></p>
-        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.3</p>
+        <p>プラグイン: Kashiwazaki SEO Author Panel Manager v1.0.4</p>
     </footer>
 </main>
 

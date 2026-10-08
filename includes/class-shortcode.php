@@ -12,6 +12,11 @@ class KAPM_Shortcode {
     private array $custom_mode_data = array();
 
     /**
+     * 住所・連絡先・法人情報の吹き出しの id 連番（同じエンティティが 1 ページに複数あっても id が重ならないように）
+     */
+    private int $org_info_seq = 0;
+
+    /**
      * wp_json_encode のフラグ (defense-in-depth):
      * - JSON_UNESCAPED_UNICODE: 日本語をそのまま出力
      * - JSON_HEX_TAG: < / > を \u003c / \u003e にエスケープ (HTML コンテキストで </script> 終了を防ぐ)
@@ -53,6 +58,15 @@ class KAPM_Shortcode {
             KAPM_PLUGIN_URL . 'public/css/panel-style.css',
             array( 'dashicons' ),
             $version
+        );
+
+        // 吹き出し（.kapm-org-info）を Esc キーで閉じるためだけのスクリプト。吹き出しがあるパネルを出したときだけ読み込む
+        // （表示自体は CSS の :hover / :focus-within で行う。WCAG 1.4.13 の「消せること」のため）
+        wp_register_script( 'kapm-panel-info', false, array(), KAPM_VERSION, true );
+        wp_add_inline_script(
+            'kapm-panel-info',
+            "document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;document.querySelectorAll('.kapm-org-info').forEach(function(el){if(el.matches(':hover')||el.contains(document.activeElement)){el.classList.add('is-dismissed');}});});"
+            . "document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.kapm-org-info').forEach(function(el){var reset=function(){el.classList.remove('is-dismissed');};el.addEventListener('mouseleave',reset);el.addEventListener('focusout',reset);});});"
         );
     }
 
@@ -368,6 +382,16 @@ class KAPM_Shortcode {
         $image_url   = $type === 'person' ? ( $entity['image_url'] ?? '' ) : ( $entity['logo_url'] ?? '' );
         $description = $type === 'person' ? ( $entity['bio'] ?? '' ) : ( $entity['description'] ?? '' );
         $job_title   = $type === 'person' ? ( $entity['job_title'] ?? '' ) : '';
+        // 住所と電話番号は Corp/Org だけ（入力があるときだけ表示）
+        $address     = $type === 'person' ? '' : $this->format_address( $entity );
+        $telephone   = $type === 'person' ? '' : trim( (string) ( $entity['telephone'] ?? '' ) );
+        $tel_href    = preg_replace( '/[^0-9+]/', '', $telephone );
+        $info_items  = $type === 'person' ? array() : $this->build_org_info_items( $entity );
+        $info_id     = '';
+        if ( ! empty( $info_items ) ) {
+            $info_id = 'kapm-org-info-' . ( ++$this->org_info_seq );
+            wp_enqueue_script( 'kapm-panel-info' );
+        }
 
         $appearance  = KAPM_Database::normalize_panel_appearance( $entity );
         $panel_style = $appearance['design'];
@@ -404,6 +428,9 @@ class KAPM_Shortcode {
                     <?php if ( $name_en !== '' ) : ?>
                         <span class="kapm-name-en">(<?php echo esc_html( $name_en ); ?>)</span>
                     <?php endif; ?>
+                    <?php if ( $info_id !== '' ) : ?>
+                        <span class="kapm-org-info"><button type="button" class="kapm-org-info-button" aria-label="<?php esc_attr_e( '詳細情報', 'kashiwazaki-seo-author-panel-manager' ); ?>" aria-describedby="<?php echo esc_attr( $info_id ); ?>"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span></button><span class="kapm-org-info-bubble" role="tooltip" id="<?php echo esc_attr( $info_id ); ?>"><?php foreach ( $info_items as $info_item ) : ?><span class="kapm-org-info-row"><span class="kapm-org-info-label"><?php echo esc_html( $info_item[0] ); ?></span><span class="kapm-org-info-value"><?php echo esc_html( $info_item[1] ); ?></span></span><?php endforeach; ?></span></span>
+                    <?php endif; ?>
                 </div>
                 <?php if ( $job_title !== '' ) : ?>
                     <div class="kapm-author-job"><?php echo esc_html( $job_title ); ?></div>
@@ -411,11 +438,106 @@ class KAPM_Shortcode {
                 <?php if ( $description !== '' ) : ?>
                     <div class="kapm-author-bio"><?php echo esc_html( $description ); ?></div>
                 <?php endif; ?>
+                <?php if ( $address !== '' || $telephone !== '' ) : ?>
+                    <div class="kapm-author-contact">
+                        <?php if ( $address !== '' ) : ?>
+                            <div class="kapm-author-address"><span class="dashicons dashicons-location" role="img" aria-label="<?php esc_attr_e( '住所', 'kashiwazaki-seo-author-panel-manager' ); ?>"></span><span><?php echo esc_html( $address ); ?></span></div>
+                        <?php endif; ?>
+                        <?php if ( $telephone !== '' ) : ?>
+                            <div class="kapm-author-tel"><span class="dashicons dashicons-phone" role="img" aria-label="<?php esc_attr_e( '電話番号', 'kashiwazaki-seo-author-panel-manager' ); ?>"></span><span><?php if ( $tel_href !== '' ) : ?><a href="<?php echo esc_url( 'tel:' . $tel_href ); ?>"><?php echo esc_html( $telephone ); ?></a><?php else : ?><?php echo esc_html( $telephone ); ?><?php endif; ?></span></div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
                 <?php echo $this->render_same_as_icons( $entity['same_as'] ?? '' ); ?>
             </div>
         </div>
         <?php
         return (string) ob_get_clean();
+    }
+
+    /**
+     * パネルに表示する住所の文字列
+     * 国コードが JP か空なら日本の書き方（〒郵便番号 都道府県市区町村番地）、
+     * それ以外は「番地, 市区町村, 州 郵便番号」の順にする
+     */
+    private function format_address( array $entity ): string {
+        $postal   = trim( (string) ( $entity['postal_code'] ?? '' ) );
+        $region   = trim( (string) ( $entity['address_region'] ?? '' ) );
+        $locality = trim( (string) ( $entity['address_locality'] ?? '' ) );
+        $street   = trim( (string) ( $entity['street_address'] ?? '' ) );
+        $country  = strtoupper( trim( (string) ( $entity['address_country'] ?? '' ) ) );
+
+        if ( $country === '' || $country === 'JP' ) {
+            $line = $region . $locality . $street;
+            if ( $postal !== '' ) {
+                $line = '〒' . $postal . ( $line !== '' ? ' ' . $line : '' );
+            }
+            return $line;
+        }
+        $parts = array( $street, $locality, trim( $region . ' ' . $postal ) );
+        return implode( ', ', array_filter( $parts, static fn( string $part ): bool => $part !== '' ) );
+    }
+
+    /**
+     * 吹き出しに出す「項目名・内容」の一覧（住所・連絡先・法人情報のうち入力がある項目だけ）
+     * 並びは入力画面と同じ。国コードは表示せず、住所の書き方の切り替えにだけ使う
+     *
+     * @return array<int, array{0: string, 1: string}>
+     */
+    private function build_org_info_items( array $entity ): array {
+        $value = static fn( string $key ): string => trim( (string) ( $entity[ $key ] ?? '' ) );
+        $items = array();
+
+        $address = $this->format_address( $entity );
+        if ( $address !== '' ) {
+            $items[] = array( __( '住所', 'kashiwazaki-seo-author-panel-manager' ), $address );
+        }
+        $texts = array(
+            'telephone'         => __( '電話番号', 'kashiwazaki-seo-author-panel-manager' ),
+            'email'             => __( 'メールアドレス', 'kashiwazaki-seo-author-panel-manager' ),
+            'contact_type'      => __( '問い合わせ窓口', 'kashiwazaki-seo-author-panel-manager' ),
+            'contact_telephone' => __( '問い合わせ電話番号', 'kashiwazaki-seo-author-panel-manager' ),
+            'contact_email'     => __( '問い合わせメール', 'kashiwazaki-seo-author-panel-manager' ),
+            'legal_name'        => __( '正式名称', 'kashiwazaki-seo-author-panel-manager' ),
+        );
+        foreach ( $texts as $key => $label ) {
+            $text = in_array( $key, array( 'email', 'contact_email' ), true ) ? KAPM_Database::sanitize_value( 'email', $value( $key ) ) : $value( $key );
+            if ( $text !== '' ) {
+                $items[] = array( $label, $text );
+            }
+        }
+
+        // 設立日は「2012年6月26日」（年だけ・年月だけはその粒度で）
+        $founding = KAPM_Database::sanitize_value( 'date', $value( 'founding_date' ) );
+        if ( $founding !== '' ) {
+            $parts   = array_map( 'intval', explode( '-', $founding ) );
+            $display = $parts[0] . '年' . ( isset( $parts[1] ) ? $parts[1] . '月' : '' ) . ( isset( $parts[2] ) ? $parts[2] . '日' : '' );
+            $items[] = array( __( '設立日', 'kashiwazaki-seo-author-panel-manager' ), $display );
+        }
+
+        $employees = KAPM_Database::parse_employees( $value( 'number_of_employees' ) );
+        if ( $employees !== null ) {
+            $display = $employees['min'] === $employees['max']
+                ? number_format_i18n( $employees['min'] ) . '人'
+                : number_format_i18n( $employees['min'] ) . '〜' . number_format_i18n( $employees['max'] ) . '人';
+            $items[] = array( __( '従業員数', 'kashiwazaki-seo-author-panel-manager' ), $display );
+        }
+
+        $codes = array(
+            'tax_id'                 => __( '税務上の識別番号', 'kashiwazaki-seo-author-panel-manager' ),
+            'vat_id'                 => __( 'VAT 登録番号', 'kashiwazaki-seo-author-panel-manager' ),
+            'iso6523_code'           => __( 'ISO 6523 コード', 'kashiwazaki-seo-author-panel-manager' ),
+            'duns'                   => __( 'DUNS 番号', 'kashiwazaki-seo-author-panel-manager' ),
+            'lei_code'               => __( 'LEI コード', 'kashiwazaki-seo-author-panel-manager' ),
+            'global_location_number' => __( 'GLN', 'kashiwazaki-seo-author-panel-manager' ),
+            'naics'                  => __( 'NAICS コード', 'kashiwazaki-seo-author-panel-manager' ),
+        );
+        foreach ( $codes as $key => $label ) {
+            if ( $value( $key ) !== '' ) {
+                $items[] = array( $label, $value( $key ) );
+            }
+        }
+        return $items;
     }
 
     /**
@@ -588,11 +710,85 @@ class KAPM_Shortcode {
                 'url'   => (string) $entity['logo_url'],
             );
         }
+        $node += $this->build_org_detail_props( $entity );
         $same_as_urls = $this->extract_valid_urls( (string) ( $entity['same_as'] ?? '' ) );
         if ( ! empty( $same_as_urls ) ) {
             $node['sameAs'] = $same_as_urls;
         }
         return $node;
+    }
+
+    /**
+     * 住所・連絡先・法人情報（任意項目）のプロパティ。空欄の項目は出力しない
+     * 書式は Google の Organization 構造化データに合わせる
+     * https://developers.google.com/search/docs/appearance/structured-data/organization
+     */
+    private function build_org_detail_props( array $entity ): array {
+        $value = static fn( string $key ): string => trim( (string) ( $entity[ $key ] ?? '' ) );
+        $props = array();
+
+        if ( $value( 'legal_name' ) !== '' ) {
+            $props['legalName'] = $value( 'legal_name' );
+        }
+        $email = KAPM_Database::sanitize_value( 'email', $value( 'email' ) );
+        if ( $email !== '' ) {
+            $props['email'] = $email;
+        }
+        if ( $value( 'telephone' ) !== '' ) {
+            $props['telephone'] = $value( 'telephone' );
+        }
+
+        // 住所は国コード以外の項目が 1 つでもあるときだけ出力する（国コードは既定で JP が入るため）
+        $address = array();
+        foreach ( array( 'street_address' => 'streetAddress', 'address_locality' => 'addressLocality', 'address_region' => 'addressRegion', 'postal_code' => 'postalCode' ) as $key => $prop ) {
+            if ( $value( $key ) !== '' ) {
+                $address[ $prop ] = $value( $key );
+            }
+        }
+        if ( ! empty( $address ) ) {
+            $country = KAPM_Database::sanitize_value( 'country', $value( 'address_country' ) );
+            if ( $country !== '' ) {
+                $address['addressCountry'] = $country;
+            }
+            $props['address'] = array( '@type' => 'PostalAddress' ) + $address;
+        }
+
+        // 問い合わせ窓口は電話番号かメールアドレスがあるときだけ出力する
+        $contact_email = KAPM_Database::sanitize_value( 'email', $value( 'contact_email' ) );
+        if ( $value( 'contact_telephone' ) !== '' || $contact_email !== '' ) {
+            $contact = array( '@type' => 'ContactPoint' );
+            if ( $value( 'contact_type' ) !== '' ) {
+                $contact['contactType'] = $value( 'contact_type' );
+            }
+            if ( $value( 'contact_telephone' ) !== '' ) {
+                $contact['telephone'] = $value( 'contact_telephone' );
+            }
+            if ( $contact_email !== '' ) {
+                $contact['email'] = $contact_email;
+            }
+            $props['contactPoint'] = $contact;
+        }
+
+        $founding_date = KAPM_Database::sanitize_value( 'date', $value( 'founding_date' ) );
+        if ( $founding_date !== '' ) {
+            $props['foundingDate'] = $founding_date;
+        }
+
+        // 従業員数は人数なら value、範囲なら minValue / maxValue
+        $employees = KAPM_Database::parse_employees( $value( 'number_of_employees' ) );
+        if ( $employees !== null ) {
+            $props['numberOfEmployees'] = $employees['min'] === $employees['max']
+                ? array( '@type' => 'QuantitativeValue', 'value' => $employees['min'] )
+                : array( '@type' => 'QuantitativeValue', 'minValue' => $employees['min'], 'maxValue' => $employees['max'] );
+        }
+
+        foreach ( array( 'tax_id' => 'taxID', 'vat_id' => 'vatID', 'iso6523_code' => 'iso6523Code', 'duns' => 'duns', 'lei_code' => 'leiCode', 'global_location_number' => 'globalLocationNumber', 'naics' => 'naics' ) as $key => $prop ) {
+            if ( $value( $key ) !== '' ) {
+                $props[ $prop ] = $value( $key );
+            }
+        }
+
+        return $props;
     }
 
     /**
